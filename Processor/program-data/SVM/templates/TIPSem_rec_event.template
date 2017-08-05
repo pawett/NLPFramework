@@ -1,0 +1,8 @@
+F:-2:9..14 F:-1:9..14 F:0:9..14 F:1:9..14 F:2:9..14
+
+# 0 file| 1 sent-num| 2 tok-num| 3 word| 4 pos| 5 syntbio| 6 sentence| 7 synt| 8 verb| 9 lemma| 10 wn| 11 roleconf|
+# 12 simplerolesIOB2| 13 simplerolesIOB2_verb| 14 simpleroles| 15 depverb| 16 tense| 17 assertype| 18 iobmainphrase|
+# 19 mainp-position| 20 phra_id| 21 PPdetail
+
+
+

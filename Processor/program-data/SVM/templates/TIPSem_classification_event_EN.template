@@ -1,0 +1,40 @@
+F:0:4 F:0:5 F:0:7 F:0:9 F:0:10 F:0:16 F:0:14 F:0:18
+#F:0:18
+
+#F:0:4 F:0:5 F:0:7 F:0:9 F:0:10 F:0:16 F:0:14 F:0:18
+#T:-1..-1
+
+#F:0:4 F:0:5 F:0:7 F:0:9 F:0:10 F:0:16 F:0:14 F:0:18 F:-1..0:21 T:-1..-1
+
+#F:0:9 F0:8 F:0:14 F:0:10 F:0:16 F:0:5,7 F:0:18 F:0:21
+
+#F:0:4,5 F:0:9 F:0:12 F:0:13
+#F:0:2,8,4,5,9
+
+#T:-1..-1
+
+#F:0:3.. T:-1..-1
+
+#F:0:7,8,6,5,4,11,13,3,9 T:-1..-1
+
+#F:0:7 F:0:8 F:0:7,8 F:0:6,4 F:0:5 F:0:4 F:0:11 F:0:13 F:0:3 F:0:9 T:-1..-1
+
+# 0 file| 1 sent-num| 2 tok-num|
+# 3 word| 4 pos | 5 syntbio| 6 sentence|
+# 7 synt| 8 verb| 9 lemma| 10 wn
+# ROLES: 11 roleconf| 12 simplerolesIOB2| 13 simplerolesIOB2_verb| 14 simpleroles| 15 depverb| 16 tense| 17 assertype|
+# 18 iobmainphrase| 19 mainp-position| 20 phra_id| 21 PPdetail
+# 22 IOBEvent
+
+# the / is used for combinations
+# 0 file| 1 sent-num| 2 tok-num|
+# 3 word| 4 pos | 5 lemma|
+# 6 rolesconf| 7 simpleroles| 8 depverb|
+# 9 tense| 10 polarity| 11 mainphrase| 12 PPdetail| 13 wn
+# 0 word| 1 pos | 2 lemma| 3 simpleroles| 4 depverb|
+# 5 tense| 6 polarity| 7 mainphrase| 8 PPdetail| 9 wn
+# 10 IOBEvent
+# F:0:8,4 F:0:7 F:0:8 F:0:7,8 F:0:6,5 F:0:5 F:0:4 F:0:11,8 F:0:13 F:0:3
+
+NYT19990312.0271.tml.plain|0|30|domination|NN|I|false|NP|-|domination|act|-|I|end|A1|end|gerund|positive|O|11|-
+NYT19990312.0271.tml.plain|8|4|faced|VBD|B|true|VP|-|face|set_about|-|B|face|V|face|past|positive|I|12|-

@@ -1,0 +1,20 @@
+F:0:2..16 F:0:2,8,14,7,13,4,10,5,6,11,12 F:0:2,8 F:0:14 F:0:7,13 F:0:4,10 F:0:5,6 F:0:11,12
+#F:0:2,8 F:1:14 F:2:7,13 F:3:4,10 F:4:5,6 F:5:11,12
+#F:1:7 F:2:13 F:3:14 F:4:6 F:5:12
+#F:0:7,13,14 F:1:2,5,11 F:3:2..16
+#F:0:2..16
+#F:0:14,2,6,7,8,12,13,15,16
+#F:0:6,10..16
+
+
+
+# the / is used for combinations
+
+# Unigram
+# 0 file| 1 tlinkId| 2 eventClass| 3 eventLemma| 4 eventPos | 5 eventTense| 6 eventAspect | 7 eventPP| 8 subEventClass
+# | 9 subEventLemma | 10 subEventPOS | 11 subEventTense | 12 subEventAspect | 13 subEventPP | 14 valdiff | 15 samePhra |
+# 16 sameSentence
+
+NYT19990312.0271.tml.plain|l80|STATE|gain|NNS|past|PAST_NONE|-|OCCURRENCE|collapse|NN|past|PAST_NONE|after|equal|O|I|AFTER
+
+

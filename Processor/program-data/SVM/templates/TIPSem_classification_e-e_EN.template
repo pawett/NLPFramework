@@ -1,0 +1,16 @@
+F:0:2..16
+#F:0:14,2,6,7,8,12,13,15,16
+#F:0:6,10..16
+
+
+
+# the / is used for combinations
+
+# Unigram
+# 0 file| 1 tlinkId| 2 eventClass| 3 eventLemma| 4 eventPos | 5 eventTense| 6 eventAspect | 7 eventPP| 8 subEventClass
+# | 9 subEventLemma | 10 subEventPOS | 11 subEventTense | 12 subEventAspect | 13 subEventPP | 14 valdiff | 15 samePhra |
+# 16 sameSentence
+
+NYT19990312.0271.tml.plain|l217|OCCURRENCE|take|VBD|past|PAST_NONE|because|OCCURRENCE|opening|NN|past|PAST_NONE|after|equal|O|I|AFTER
+
+

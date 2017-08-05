@@ -1,0 +1,8 @@
+
+
+We are using the whole test data (entities+relations) and we removed all the 0 sencences (dct) (in both train and test).
+
+
+It is needed to specify it in the paper, and perhaps we should experiment with only the entities part to see if we get better resutls...
+
+

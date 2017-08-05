@@ -1,0 +1,17 @@
+# the / is used for combinations
+
+# Unigram
+
+# 0 file| 1 tlinkId| 2 eventClass| 3 eventStem| 4 eventTense| 5 eventAspect| 6 eventPP| 7 timeType| 8 timeRelatedTime| 9 timePP| 10 syntRelation
+
+U00:%x[0,2]
+U01:%x[0,3]
+U02:%x[0,4]
+U03:%x[0,5],%x[0,6]
+U05:%x[0,7]
+U06:%x[0,8]
+U07:%x[0,9]
+U08:%x[0,10]
+
+# USING ALL FEATURES, SAME RESULT IS OBTAINED... WE NEED 10-FOLD AND SOME BASIC FILES...
+

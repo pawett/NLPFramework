@@ -1,0 +1,47 @@
+# the / is used for combinations
+
+# Unigram
+
+# 0 file| 1 sent-num| 2 tok-num|
+# 3 word| 4 pos | 5 syntbio| 6 sentence|
+# 7 synt| 8 verb| 9 lemma| 10 wn
+# ROLES: 11 roleconf| 12 simplerolesIOB2| 13 simplerolesIOB2_verb| 14 simpleroles| 15 depverb| 16 tense| 17 assertype|
+# 18 iobmainphrase | 19 phra_id| 20 PPdetail
+
+# role
+U00:%x[0,6]
+U00:%x[0,14]
+U00:%x[0,10]
+U12:%x[0,9]
+U00:%x[0,4]
+U00:%x[0,7]
+
+# role
+U00:%x[0,7]/%x[0,9]/%x[0,13]/%x[0,15]
+U00:%x[0,16]
+U00:%x[0,10]
+U00:%x[0,20]
+
+
+#U00:%x[-3,18]/%x[-3,20]/%x[-3,5]/%x[-3,7]/%x[-3,12]/%x[-3,14]
+U00:%x[-2,18]/%x[-2,20]/%x[-2,5]/%x[-2,7]/%x[-2,12]/%x[-2,14]
+U00:%x[-1,18]/%x[-1,20]/%x[-1,5]/%x[-1,7]/%x[-1,12]/%x[-1,14]
+U00:%x[0,18]/%x[0,20]/%x[0,5]/%x[0,7]/%x[0,12]/%x[0,14]
+U00:%x[1,18]/%x[1,20]/%x[1,5]/%x[1,7]/%x[1,12]/%x[1,14]
+#U00:%x[2,18]/%x[2,20]/%x[2,5]/%x[2,7]/%x[2,12]/%x[2,14]
+
+
+# five window POS (trigrams)
+U19:%x[-2,9]/%x[-1,9]/%x[0,9]
+U20:%x[-1,9]/%x[0,9]/%x[1,9]
+U21:%x[0,9]/%x[1,9]/%x[2,9]
+
+
+# five window POS (trigrams)
+U31:%x[-2,4]/%x[-1,4]/%x[0,4]
+U32:%x[-1,4]/%x[0,4]/%x[1,4]
+U33:%x[0,4]/%x[1,4]/%x[2,4]
+
+
+B
+
