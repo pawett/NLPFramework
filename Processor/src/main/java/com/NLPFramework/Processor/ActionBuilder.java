@@ -99,6 +99,9 @@ public class ActionBuilder
 			case TRAIN_AND_TEST:
 				actionExecutor = new TrainTestAction(task, element, train_dir, test_dir, approach, Configuration.getLanguage(), rebuild_dataset, Configuration.getMachineLearningMethod());
 				break;
+			case GETDATA:
+				actionExecutor = new GetData(Configuration.getFolderPath());
+				break;
 			default:
 			case ANNOTATE:
 				Configuration.setDCT(getParameter(action_parameters, "DCT"));

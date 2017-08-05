@@ -317,39 +317,38 @@ public class NLPProcessor
 		
 	}*/
 
-	public void processEvents(String approach)
+	public void recogniceEvents()
 	{
 		Logger.WriteDebug("Recognizing EVENTs");
 			
-		method.getEventProcessing().getRecognition().Test(file, Configuration.getModelsPath(), approach, "recognition_event_VB", file.getLanguage(), new FeaturesFormatter(), new FeaturesEventAnnotatedFormatter());
-		method.getEventProcessing().getRecognition().Test(file, Configuration.getModelsPath(), approach, "recognition_event_NN", file.getLanguage(), new FeaturesFormatter(), new FeaturesEventAnnotatedFormatter());
-		method.getEventProcessing().getRecognition().Test(file, Configuration.getModelsPath(), approach, "recognition_event_JJ", file.getLanguage(), new FeaturesFormatter(), new FeaturesEventAnnotatedFormatter());
+		method.getEventProcessing().getRecognition().Test(file, Configuration.getModelsPath(), Configuration.getApproach(), "recognition_event_VB", file.getLanguage(), new FeaturesFormatter(), new FeaturesEventAnnotatedFormatter());
+		method.getEventProcessing().getRecognition().Test(file, Configuration.getModelsPath(), Configuration.getApproach(), "recognition_event_NN", file.getLanguage(), new FeaturesFormatter(), new FeaturesEventAnnotatedFormatter());
+		method.getEventProcessing().getRecognition().Test(file, Configuration.getModelsPath(), Configuration.getApproach(), "recognition_event_JJ", file.getLanguage(), new FeaturesFormatter(), new FeaturesEventAnnotatedFormatter());
 		
 		//method.getEventProcessing().getRecognition().Test(file, modelsPath, approach, "rec_event", language.toString(), new TempEval2FeaturesFormatter(), new TempEval2FeaturesAnnotated());
 		
-		Logger.WriteDebug("Classifying EVENTs");
-
-		method.getEventProcessing().getClassification().Test(file, Configuration.getModelsPath(), approach, "classification_event", file.getLanguage(), new EventClassikFormatter(), new EventClassikAnnotatedFormatter());
 		//Classification.setClassikEvents(file);
 		
 		//method.getEventProcessing().getClassification().Test(file, Configuration.getModelsPath(), approach, "classification_event", Configuration.getLanguage(), new TempEvalClassikEventFormatter(), new TempEvalClassikAnnotatedFormatter());
 		
 	}
 	
-	public void RecognizeTLINKS(String approach)
+	public void classifyEvents()
 	{
-		Logger.WriteDebug("Recognizing TLINKs");
 
+		Logger.WriteDebug("Classifying EVENTs");
+
+		method.getEventProcessing().getClassification().Test(file, Configuration.getModelsPath(), Configuration.getApproach(), "classification_event", file.getLanguage(), new EventClassikFormatter(), new EventClassikAnnotatedFormatter());
+		
+	}
+	
+	public void setMakeInstancesFromEvents()
+	{
 		TimeMLFile timeFeatures = new TimeMLFile(file);
 		tml = new TimeML(timeFeatures);
-		
-		MakeInstance previousSentenceMainEvent = null;
-		MakeInstance currentSentenceMainEvent = null;
-		
+
 		for(TokenizedSentence sentence : timeFeatures)
 		{	
-
-		
 			//Process makeinstances
 			if(sentence.annotations.get(Event.class) != null)
 			{
@@ -360,6 +359,36 @@ public class NLPProcessor
 					timeFeatures.addAnnotation(MakeInstance.class, mkCurrent);
 				}
 			}
+		}
+	}
+	
+	public void RecognizeTLINKS()
+	{
+		Logger.WriteDebug("Recognizing TLINKs");
+
+		TimeMLFile timeFeatures = new TimeMLFile(file);
+		tml = new TimeML(timeFeatures);
+		
+		MakeInstance previousSentenceMainEvent = null;
+		MakeInstance currentSentenceMainEvent = null;
+		
+		if(timeFeatures.annotations.get(MakeInstance.class) == null)
+			setMakeInstancesFromEvents();
+		
+		for(TokenizedSentence sentence : timeFeatures)
+		{	
+
+		
+			//Process makeinstances
+			/*if(sentence.annotations.get(Event.class) != null)
+			{
+				for(Word key : sentence.annotations.get(Event.class).keySet())
+				{
+					MakeInstance mkCurrent = new MakeInstance(key, (Event)sentence.annotations.get(Event.class).get(key).element);
+					//mkCurrent.id = "mk" + (timeFeatures.annotations.get(MakeInstance.class).size() + 1);
+					timeFeatures.addAnnotation(MakeInstance.class, mkCurrent);
+				}
+			}*/
 			
 			currentSentenceMainEvent = TimeMLHelper.getMakeInstanceFromFile(timeFeatures, TimeMLHelper.getSentenceMainEvent(sentence));
 			
@@ -389,13 +418,13 @@ public class NLPProcessor
 		}
 
 
-		new SVM().Test(timeFeatures, Configuration.getModelsPath(), approach, "classification_e-dct", file.getLanguage(), new EventDCTRelationFormatter(), new EventDCTRelationAnnotatedFormatter());
+		new SVM().Test(timeFeatures, Configuration.getModelsPath(), Configuration.getApproach(), "classification_e-dct", file.getLanguage(), new EventDCTRelationFormatter(), new EventDCTRelationAnnotatedFormatter());
 
-		new SVM().Test(timeFeatures, Configuration.getModelsPath(),approach, "classification_e-t", file.getLanguage(), new EventTimexRelationFormatter(), new EventTimexRelationAnnotatedFormatter());
+		new SVM().Test(timeFeatures, Configuration.getModelsPath(), Configuration.getApproach(), "classification_e-t", file.getLanguage(), new EventTimexRelationFormatter(), new EventTimexRelationAnnotatedFormatter());
 
-		new SVM().Test(timeFeatures, Configuration.getModelsPath(),approach, "classification_e-e", file.getLanguage(), new EventEventRelationFormatter(), new EventEventRelationAnnotatedFormatter());
+		new SVM().Test(timeFeatures, Configuration.getModelsPath(), Configuration.getApproach(), "classification_e-e", file.getLanguage(), new EventEventRelationFormatter(), new EventEventRelationAnnotatedFormatter());
 
-		new SVM().Test(timeFeatures, Configuration.getModelsPath(),approach, "classification_e-sube", file.getLanguage(), new EventSubEventRelationFormatter(), new EventSubEventRelationAnnotatedFormatter());
+		new SVM().Test(timeFeatures, Configuration.getModelsPath(), Configuration.getApproach(), "classification_e-sube", file.getLanguage(), new EventSubEventRelationFormatter(), new EventSubEventRelationAnnotatedFormatter());
 
 	}
 	

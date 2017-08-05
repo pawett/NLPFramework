@@ -127,8 +127,9 @@ public class Annotator {
 			String event_merged = null;
 			if (entities.contains("event")) {
 				//File featuresFile = features.toFile();
-				processor.processEvents(approach);
-				//RecognizeEvents(features);
+				processor.recogniceEvents();
+
+				processor.classifyEvents();//RecognizeEvents(features);
 			}
 			// Omit signals for the moment: wait for longer and better corpus
 			/*String signal;
@@ -152,7 +153,7 @@ public class Annotator {
 			
 			if (entities.contains("tlink")) {
 				//tml = RecognizeTLINKS(features);
-				processor.RecognizeTLINKS(approach);
+				processor.RecognizeTLINKS();
 			}
 			
 			TimeMLFile timeMLFile = new TimeMLFile(processor.getFile());

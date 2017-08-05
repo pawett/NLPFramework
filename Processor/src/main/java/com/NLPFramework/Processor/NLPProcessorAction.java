@@ -5,5 +5,6 @@ public enum NLPProcessorAction
 	ANNOTATE,
 	TRAIN,
 	TEST,
-	TRAIN_AND_TEST, SRL
+	TRAIN_AND_TEST, SRL,
+	GETDATA
 }

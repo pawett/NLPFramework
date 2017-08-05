@@ -62,7 +62,7 @@ public class TrainTestAction implements IActionExecutor
 		// Check for features files (train/test)
 		if (rebuildDataSet || !new File(featuresTrainFilePath).exists()) 
 		{
-			FileConverter.tmldir2features(trainDir, approach, lang);
+			FileConverter.tmldir2features(trainDir, approach);
 		}
 		
 		String featuresTestDir = testDir.getParent() + File.separator + testDir.getName() + "_" + approach + "_features";
@@ -70,7 +70,7 @@ public class TrainTestAction implements IActionExecutor
 		
 		if (rebuildDataSet || !new File(featuresTestFilePath).exists())
 		{
-			FileConverter.tmldir2features(testDir, approach, lang);
+			FileConverter.tmldir2features(testDir, approach);
 		}
 		
 		TrainBase trainModel = null;

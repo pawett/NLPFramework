@@ -9,7 +9,9 @@ import com.NLPFramework.Domain.TokenizedSentence;
 import com.NLPFramework.Domain.Word;
 import com.NLPFramework.Helpers.Constants;
 import com.NLPFramework.Helpers.TimeMLHelper;
+import com.NLPFramework.NewsReader.Domain.Certainty;
 import com.NLPFramework.NewsReader.Domain.EventMention;
+import com.NLPFramework.NewsReader.Domain.Factuality;
 import com.NLPFramework.TimeML.Domain.EntityMapper;
 import com.NLPFramework.TimeML.Domain.Event;
 import com.NLPFramework.TimeML.Domain.MakeInstance;
@@ -47,8 +49,14 @@ public class TimeLineProcessor
 					MakeInstance mk = mkOptional.get();
 					EventMention eventMention = (EventMention) mk.event;
 					processEventMention(eventMention, sentence);
-					if(!mk.modality.isEmpty())//Rule Not modal verbs
+					if(eventMention.modality != null || !eventMention.modality.isEmpty())//Rule Not modal verbs
 						continue;
+					if(eventMention.factuality.equals(Factuality.COUNTERFACTUAL))
+						continue;
+					if(eventMention.factuality.equals(Factuality.NONFACTUAL) && eventMention.certainty.equals(Certainty.UNCERTAIN))
+						continue;
+					//TODO:Events that describe mental states and mental acts that involve mental or cognitive processes such as plans, love, think, know, remember, perceive, prefer, want, forget, understand, decide, decision
+					
 					if(mk.polarity.equals(Polarity.NEG)) //Not negated events
 						continue;
 					if(mk.event.word.pos.startsWith("J"))//Not adjectivals events

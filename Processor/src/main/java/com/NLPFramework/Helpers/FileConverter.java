@@ -21,6 +21,7 @@ import com.NLPFramework.Files.PlainFile;
 import com.NLPFramework.Files.XMLFile;
 import com.NLPFramework.Formatters.FeaturesFormatter;
 import com.NLPFramework.Formatters.TokenFileFormatter;
+import com.NLPFramework.Processor.Configuration;
 import com.NLPFramework.Processor.TMLExtractor;
 
 
@@ -56,9 +57,8 @@ public class FileConverter {
      * Obtains the dataset of a directory containing tml files.
      * @param basedir
      * @param approach
-     * @param lang
      */
-    public static void tmldir2features(File basedir, String approach, Language lang)
+    public static void tmldir2features(File basedir, String approach)
     {
         String featuresdir = basedir.getParent() + File.separator + basedir.getName() + "_" + approach + "_features" + File.separator;
         try {
@@ -85,7 +85,7 @@ public class FileConverter {
            ArrayList<TokenizedFile> filesAnnotated = new ArrayList<>();
            files.parallelStream().forEach((tmlFile) -> {
         	   try {
-        		   filesAnnotated.add(processFile(approach, lang, featuresdir, tmlFile));
+        		   filesAnnotated.add(processFile(approach, Configuration.getLanguage(), featuresdir, tmlFile));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

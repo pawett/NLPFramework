@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
 
 import com.NLPFramework.Crosscutting.Logger;
 import com.NLPFramework.Formatters.IFileFormatter;
@@ -18,6 +19,8 @@ import com.NLPFramework.Helpers.FileUtils;
 
 public class TokenizedFileHashtable extends Hashtable<String,TokenizedFile>
 {
+	
+	
 	
 	public TokenizedFileHashtable(String path)
 	{
@@ -52,6 +55,11 @@ public class TokenizedFileHashtable extends Hashtable<String,TokenizedFile>
 	
 	public TokenizedFileHashtable() {
 		// TODO Auto-generated constructor stub
+	}
+	
+	public Enumeration<String> getKeys()
+	{
+		return this.keys();
 	}
 
 	public File toFile(ISentenceFormatter formatter, String path)
@@ -112,5 +120,6 @@ public class TokenizedFileHashtable extends Hashtable<String,TokenizedFile>
 		return resultFile;
 	}
 
+	
 
 }

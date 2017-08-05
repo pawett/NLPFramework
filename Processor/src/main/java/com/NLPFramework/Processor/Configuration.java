@@ -37,7 +37,7 @@ public class Configuration
 		action = act;
 	}
 	
-	public static String folderPath = null;
+	private static String folderPath = null;
 	
 	public static String getFolderPath()
 	{

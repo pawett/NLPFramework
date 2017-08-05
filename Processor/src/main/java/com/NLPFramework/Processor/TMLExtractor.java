@@ -43,6 +43,7 @@ import com.NLPFramework.externalTools.StanfordSynt;
 
 public class TMLExtractor {
 	
+	
 	public static TokenizedFile getAnnotationsFromTML(String tmlFilePath, Language lang)
 	{
 		TimeMLFile tFile = null;
@@ -55,14 +56,7 @@ public class TMLExtractor {
 			
 			// normalize text representation
 			doc.getDocumentElement().normalize();
-			
-			NodeList docIDs = doc.getElementsByTagName("DOCID");
-			if(docIDs.getLength() == 1)
-			{
-				Node docIdInstanceNode = docIDs.item(0);
-				String docID = docIdInstanceNode.getNodeValue();
-				tFile.setDocId(docID);
-			}
+		
 				
 			tFile = processText(tmlFilePath, doc, lang);
 			
@@ -223,15 +217,42 @@ public class TMLExtractor {
 			Logger.WriteError("More than one TEXT tag in the document", null);
 			System.exit(1);
 		}
+			
 		
 		Element text = (Element) texts.item(0);
 		
-		NodeList children = text.getChildNodes();
+		
 		StringBuilder sb  = new StringBuilder();
-		printChildren(children, sb);
+		//printChildren(children, sb);
 		
 		String plainFilePath = tmlFilePath + ".plain";
-		FileHelper.createFileFromText(sb.toString(), plainFilePath);
+		String fullText = null;
+		NodeList sentences = doc.getElementsByTagName("s");
+		if(sentences != null && sentences.getLength() > 0)
+		{
+			StringBuilder sbDocument = new StringBuilder();
+			for(int i = 0; i< sentences.getLength() ; i++)
+			{
+				Node sentenceNode = sentences.item(i);
+				String fullLine = sentenceNode.getTextContent();
+				fullLine = FileHelper.formatText(fullLine);
+				if(!fullLine.endsWith(".") && !fullLine.endsWith("\'\'"))
+				{
+					fullLine = fullLine + ".";
+					sentenceNode.getLastChild().setNodeValue(sentenceNode.getLastChild().getNodeValue()+ ".");
+				}
+				sbDocument.append(fullLine);
+				sb.append(System.lineSeparator());
+
+			}
+			fullText = sbDocument.toString();
+		}else
+			fullText = text.getTextContent();
+		
+		fullText = FileHelper.formatText(fullText);
+		
+		//FileHelper.createFileFromText(sb.toString(), plainFilePath);
+		FileHelper.createFileFromText(fullText, plainFilePath);
 		
 		NLPProcessor nlpProcessor = new NLPProcessor(plainFilePath, null);
 		/*ArrayList<INLPAction> actions = new ArrayList<>();
@@ -246,8 +267,17 @@ public class TMLExtractor {
 		setDCT(tmlFile, timexes);
 		
 		
+		NodeList docIDs = doc.getElementsByTagName("DOCID");
+		if(docIDs.getLength() == 1)
+		{
+			Node docIdInstanceNode = docIDs.item(0);
+			String docID = docIdInstanceNode.getFirstChild().getNodeValue();
+			tmlFile.setDocId(docID);
+		}
+		
 		ArrayList<Node> flattenedNodes = new ArrayList<>();
 		
+		NodeList children = text.getChildNodes();
 		flattenNodes(children, flattenedNodes);
 			
 		getEntitiesFromText(tmlFile, flattenedNodes);
@@ -468,7 +498,8 @@ public class TMLExtractor {
 			
 			Event event = new Event(token);
 			event.id = parentNodeAttributes.getNamedItem("eid").getNodeValue();
-			event.eventClass = EventClass.valueOf(parentNodeAttributes.getNamedItem("class").getNodeValue());
+			if(parentNodeAttributes.getNamedItem("class") != null)
+				event.eventClass = EventClass.valueOf(parentNodeAttributes.getNamedItem("class").getNodeValue());
 			
 			eMap = new EntityMapper<>();
 			
@@ -499,7 +530,8 @@ public class TMLExtractor {
 				timeDCT.id = dctNode.getAttributes().getNamedItem("tid").getNodeValue().replaceAll("t", "");
 				timeDCT.value = dctNode.getAttributes().getNamedItem("value").getNodeValue();
 				timeDCT.functionInDocument = TimeFunctionInDocument.valueOf(dctNode.getAttributes().getNamedItem("functionInDocument").getNodeValue());
-				timeDCT.temporalFunction = Boolean.parseBoolean(dctNode.getAttributes().getNamedItem("temporalFunction").getNodeValue());
+				if(dctNode.getAttributes().getNamedItem("temporalFunction") != null)
+					timeDCT.temporalFunction = Boolean.parseBoolean(dctNode.getAttributes().getNamedItem("temporalFunction").getNodeValue());
 				featuresFile.setDCT(timeDCT);
 			}
 		}
@@ -554,15 +586,16 @@ public class TMLExtractor {
 		}
 	}
 	
-	private static void printChildren(NodeList children, StringBuilder sb)
+	public static void printChildren(NodeList children, StringBuilder sb)
 	{
 		for(int i = 0; i < children.getLength(); i++)
 		{
 			if(children.item(i).hasChildNodes())
 				printChildren(children.item(i).getChildNodes(), sb);
-			else sb.append(children.item(i).getTextContent());
+			else 
+				sb.append(children.item(i).getTextContent());
 		}
-	
+
 	}
 
 }
