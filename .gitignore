@@ -26,8 +26,8 @@
 hs_err_pid*
 
 Processor/target/
-Processor/program-data/CRF/models
-Processor/program-data/SVM/models
+Processor/program-data/CRF/models/*
+Processor/program-data/SVM/models/*
 
 !.gitignore
 !Processor/src
