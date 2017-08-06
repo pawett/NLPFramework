@@ -83,7 +83,7 @@ public class StanfordSynt implements ITextProcessor {
 		lines.forEach(line -> sb.append(FileHelper.formatText(line) + " "));
 		
 		Annotation doc = new Annotation(sb.toString());
-		
+		tokFile.setOriginalText(sb.toString());
 		pipeline.annotate(doc);
 	
 		//List<CoreMap> maps = doc.get(ParagraphsAnnotation.class);
@@ -113,7 +113,7 @@ public class StanfordSynt implements ITextProcessor {
 		{
 			  
 			TokenizedSentence tokSent = new TokenizedSentence();
-			
+			tokSent.originalText = s.get(TextAnnotation.class);
 		
 			//SemanticGraph dependencies = s.get(EnhancedPlusPlusDependenciesAnnotation.class);
 			

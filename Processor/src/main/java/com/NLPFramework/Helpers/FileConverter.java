@@ -16,6 +16,7 @@ import java.util.List;
 import com.NLPFramework.Crosscutting.Logger;
 import com.NLPFramework.Domain.Language;
 import com.NLPFramework.Domain.TokenizedFile;
+import com.NLPFramework.Domain.TokenizedFileHashtable;
 import com.NLPFramework.Files.NLPFile;
 import com.NLPFramework.Files.PlainFile;
 import com.NLPFramework.Files.XMLFile;
@@ -58,10 +59,12 @@ public class FileConverter {
      * @param basedir
      * @param approach
      */
-    public static void tmldir2features(File basedir, String approach)
+    //TODO: This must return an TokenizedFileHashtable. This way it is possible to get rid of the awful TokenizedHashtable constructor, by saving the class as binary
+    public static TokenizedFileHashtable tmldir2features(File basedir, String approach)
     {
         String featuresdir = basedir.getParent() + File.separator + basedir.getName() + "_" + approach + "_features" + File.separator;
-        try {
+        try 
+        {
            /* if ((new File(featuresdir + "base-segmentation.TempEval2-features").exists())) {
                 throw new Exception("PREVENTIVE ERROR: Save or delete the previousely generated features because these will be overwritten after this process: " + featuresdir);
             }*/
@@ -95,31 +98,23 @@ public class FileConverter {
 			}
            });
            
-           FileOutputStream fos = null;
-           ObjectOutputStream oos = null;
-           try{
-        	   fos = new FileOutputStream(featuresdir + "features.obj");
-        	   oos = new ObjectOutputStream(fos);
-
-        	   oos.writeObject(filesAnnotated);
-           }catch (Exception ex)
-           {
-        	   Logger.WriteError("Error saving binary file", ex);
-           }finally
-           {
-        	   oos.close();
-        	   fos.close();
-           }
+           TokenizedFileHashtable hashtableFiles = new TokenizedFileHashtable();
            
+           for(TokenizedFile f : filesAnnotated)
+			{
+        	   hashtableFiles.put(f.getName(), f);
+			}
+         
+           return hashtableFiles;
 
 
-        } catch (Exception e) {
-            System.err.println("Errors found (FileConverter):\n\t" + e.toString() + "\n");
-            if (System.getProperty("DEBUG") != null && System.getProperty("DEBUG").equalsIgnoreCase("true")) {
-                e.printStackTrace(System.err);
-                System.exit(1);
-            }
+        } catch (Exception e) 
+        {
+        	Logger.WriteError("Errors found (FileConverter):\n\t" ,e);
+        	System.exit(1);
         }
+        
+        return null;
 
     }
 

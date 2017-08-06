@@ -2,12 +2,18 @@ package com.NLPFramework.Helpers;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 import com.NLPFramework.Crosscutting.Logger;
+import com.NLPFramework.Domain.TokenizedFile;
+import com.NLPFramework.Domain.TokenizedFileHashtable;
 
 
 public class FileHelper {
@@ -50,7 +56,7 @@ public class FileHelper {
 	
 	public static String formatText(String text)
 	{
-		text = text.replaceAll("\"", "''");
+		//text = text.replaceAll("\"", "''");
 		text = text.replaceAll("``", "''");
 		text = text.replaceAll("`", "'");
 		text = text.replaceAll("-LSB-", "(");
@@ -59,7 +65,7 @@ public class FileHelper {
 		text = text.replaceAll("-RCB-", ")");
 		text = text.replaceAll("-LRB-", "(");
 		text = text.replaceAll("-RRB-", ")");
-		text = text.replaceAll("-", "-");
+		//text = text.replaceAll("-", "-");
 		return text;
 		//.replace("''", "\"").replace("``","\"").replace("-", " - ");
 	}
@@ -98,6 +104,76 @@ public class FileHelper {
 			return false;
 		}
 		return true;
+	}
+	
+	public static String saveFilesAsBinary(TokenizedFileHashtable files, String path)
+	{
+		  FileOutputStream fos = null;
+          ObjectOutputStream oos = null;
+          String binaryPath = path + "features.obj";
+          try{
+        	  fos = new FileOutputStream(binaryPath);
+        	  oos = new ObjectOutputStream(fos);
+
+        	  oos.writeObject(files);
+        	  return binaryPath;
+          }catch (Exception ex)
+          {
+        	  Logger.WriteError("Error saving binary file", ex);
+          }finally
+          {
+        	  try {
+        		  oos.close();
+        	  } catch (IOException e) {
+        		  // TODO Auto-generated catch block
+        		  e.printStackTrace();
+        	  }
+        	  try {
+        		  fos.close();
+        	  } catch (IOException e) {
+        		  // TODO Auto-generated catch block
+        		  e.printStackTrace();
+        	  }
+          }
+          
+          return null;
+          
+	}
+	
+	public static TokenizedFileHashtable getBinaryFiles(String path)
+	{
+		FileInputStream fin = null;
+		ObjectInputStream ois = null;
+		ArrayList<TokenizedFile> filesRecovered = null;
+		TokenizedFileHashtable files = new TokenizedFileHashtable();
+		try
+		{
+			try
+			{
+				fin = new FileInputStream(path);
+				ois = new ObjectInputStream(fin);
+				files = (TokenizedFileHashtable) ois.readObject();
+				/*for(TokenizedFile f : filesRecovered)
+				{
+					files.put(f.getName(), f);
+				}*/
+				
+				return files;
+
+			}catch(Exception ex)
+			{
+				Logger.WriteError("Error reading binary file", ex);
+			}finally
+			{
+				fin.close();
+				ois.close();
+			}
+		}catch(Exception ex)
+		{
+			Logger.WriteError("Error reading binary file", ex);
+		}
+		
+		return null;
 	}
 	
 }

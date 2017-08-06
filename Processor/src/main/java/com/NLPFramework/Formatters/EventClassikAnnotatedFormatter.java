@@ -1,6 +1,7 @@
 package com.NLPFramework.Formatters;
 
 
+import com.NLPFramework.Crosscutting.Logger;
 import com.NLPFramework.Domain.Annotation;
 import com.NLPFramework.Domain.SemanticRole;
 import com.NLPFramework.Domain.TokenizedSentence;
@@ -120,6 +121,11 @@ public class EventClassikAnnotatedFormatter extends FeaturesFormatter implements
 		String wordPos = valuesArray[2];
 		int position = Integer.parseInt(wordPos);
 		Word currentWord =  sentence.get(position);
+		if(currentWord == null || sentence.annotations.get(Event.class) == null || sentence.annotations.get(Event.class).get(currentWord) == null)
+			{
+				Logger.Write("Error setting values for event classification");
+				return;
+			}
 		Event event = (Event) sentence.annotations.get(Event.class).get(currentWord).element;
 		event.eventClass = EventClass.valueOf(classValue);
 		

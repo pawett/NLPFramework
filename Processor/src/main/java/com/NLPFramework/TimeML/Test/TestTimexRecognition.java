@@ -8,6 +8,7 @@ import com.NLPFramework.Domain.TokenizedFile;
 import com.NLPFramework.Domain.TokenizedFileHashtable;
 import com.NLPFramework.Formatters.EventClassikAnnotatedFormatter;
 import com.NLPFramework.Formatters.EventClassikFormatter;
+import com.NLPFramework.Helpers.FileHelper;
 import com.NLPFramework.Processor.IActionExecutor;
 import com.NLPFramework.Processor.NLPProcessor;
 import com.NLPFramework.Processor.TemporalInformationProcessingStrategy;
@@ -49,7 +50,7 @@ public class TestTimexRecognition extends TestTMLBase implements IActionExecutor
 
 			String featuresTestPath = featuresTestDir + File.separator + "features.obj";
 
-			TokenizedFileHashtable featuresTestFiles = new TokenizedFileHashtable(featuresTestPath);
+			TokenizedFileHashtable featuresTestFiles = FileHelper.getBinaryFiles(featuresTestPath);
 
 			File fileClassikAnnotated = featuresTestFiles.toFile(new EventClassikAnnotatedFormatter(), featuresTestDir + File.separator + elem + "ClassikFeatures.pipes");
 			File fileClassik = featuresTestFiles.toFile(new EventClassikFormatter(), featuresTestDir + File.separator + elem + "Classik.pipes" );
@@ -57,7 +58,7 @@ public class TestTimexRecognition extends TestTMLBase implements IActionExecutor
 			key = fileClassikAnnotated.getAbsolutePath();
 
 			TokenizedFileHashtable annotatedTestFiles = featuresTestFiles;
-			TokenizedFileHashtable featuresTestKeyFiles = new TokenizedFileHashtable(featuresTestPath);
+			TokenizedFileHashtable featuresTestKeyFiles = FileHelper.getBinaryFiles(featuresTestPath);
 			for(String fileName : featuresTestFiles.keySet())
 			{	
 				TokenizedFile kFileTemp = featuresTestKeyFiles.get(fileName);

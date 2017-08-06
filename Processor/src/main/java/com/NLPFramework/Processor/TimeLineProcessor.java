@@ -1,23 +1,28 @@
 package com.NLPFramework.Processor;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.Optional;
 
+import com.NLPFramework.Crosscutting.Logger;
 import com.NLPFramework.Domain.Annotation;
+import com.NLPFramework.Domain.Coreference;
 import com.NLPFramework.Domain.PropBankArgument;
 import com.NLPFramework.Domain.TokenizedSentence;
 import com.NLPFramework.Domain.Word;
-import com.NLPFramework.Helpers.Constants;
 import com.NLPFramework.Helpers.TimeMLHelper;
-import com.NLPFramework.NewsReader.Domain.Certainty;
 import com.NLPFramework.NewsReader.Domain.EventMention;
-import com.NLPFramework.NewsReader.Domain.Factuality;
 import com.NLPFramework.TimeML.Domain.EntityMapper;
 import com.NLPFramework.TimeML.Domain.Event;
 import com.NLPFramework.TimeML.Domain.MakeInstance;
-import com.NLPFramework.TimeML.Domain.Polarity;
+import com.NLPFramework.TimeML.Domain.TimeLink;
+import com.NLPFramework.TimeML.Domain.TimeLinkRelationType;
 import com.NLPFramework.TimeML.Domain.TimeMLFile;
+import com.NLPFramework.TimeML.Domain.TimeType;
 import com.NLPFramework.TimeML.Domain.Timex3;
+
+import edu.stanford.nlp.util.HashableCoreMap.HashableCoreMapException;
 
 
 
@@ -40,15 +45,22 @@ public class TimeLineProcessor
 		{
 			Hashtable<Word, EntityMapper<Annotation>> events =  sentence.annotations.get(Event.class);
 			
+			if(events == null)
+				continue;
+			
 			for(Word w : events.keySet())
 			{
 				Event event = (Event) events.get(w).element;
 				Optional<MakeInstance> mkOptional = file.getMakeInstances().stream().filter(mk -> mk.event.equals(event)).findFirst();
 				if(mkOptional.isPresent())
 				{
-					MakeInstance mk = mkOptional.get();
-					EventMention eventMention = (EventMention) mk.event;
-					processEventMention(eventMention, sentence);
+					//MakeInstance mk = mkOptional.get();
+					//EventMention eventMention = (EventMention) mk.event;
+					
+					processEvent(event);
+					
+					
+				/*	processEventMention(eventMention, sentence);
 					if(eventMention.modality != null || !eventMention.modality.isEmpty())//Rule Not modal verbs
 						continue;
 					if(eventMention.factuality.equals(Factuality.COUNTERFACTUAL))
@@ -60,11 +72,11 @@ public class TimeLineProcessor
 					if(mk.polarity.equals(Polarity.NEG)) //Not negated events
 						continue;
 					if(mk.event.word.pos.startsWith("J"))//Not adjectivals events
-						continue;
+						continue;*/
 				}
 			}
 			
-			int verbPos = 0;
+			/*int verbPos = 0;
 			for(Word v : sentence.verbs)
 			{
 				sb.append("Action: " + v.word);
@@ -105,10 +117,153 @@ public class TimeLineProcessor
 				sb.append("when: " + when);
 				verbPos++;
 				sb.append(System.lineSeparator());
-			}
+			}*/
 		}
 		
 		
+	}
+	
+	private void processEvent(Event event)
+	{
+		TokenizedSentence sentence = file.get(event.word.sentenceNumber);
+		Logger.Write("Sentence: " + sentence.toStringSyntFlat());
+		Logger.Write("Action: " + event.stem);
+		String subject = "";
+		String cd= "";
+		String when = "";
+		
+		Word eventDepVerb = event.word.isVerb ? event.word : sentence.getWordDependantVerb(event.word);
+		
+		int verbPos = sentence.verbs.indexOf(eventDepVerb);
+		
+		if(verbPos < 0)
+		{
+			Logger.Write("No verbs for " + sentence.getOriginalText());
+			return;
+		}
+		
+		TimeMLHelper.getWordSentence(sentence, event.word);
+		String sentenceSRL = "";
+		for(Word w : sentence)
+		{
+			/*if(events.contains(w))
+			{
+				MakeInstance event = (MakeInstance) events.get(w).element;
+				
+				if(event.modality.matches(Constants.matchModal))
+					continue;
+				
+			}*/
+			
+			if( w.semanticRoles != null && w.semanticRoles.get(verbPos) != null && w.semanticRoles.get(verbPos).argument != null)
+			{	
+				sentenceSRL = sentenceSRL + " " + w.word;
+				String coref = w.word;
+				if(getMainReference(w) != null)
+					coref = getMainReference(w).printCurrent();
+				if(w.ner.matches("PER|PERSON|ORG|ORGANIZATION"))
+				{
+					if(w.semanticRoles.get(verbPos).argument.equals(PropBankArgument.A0))
+						subject =  subject + " " + coref ;//.ner.matches("PER|PERSON|ORG|ORGANIZATION") ? subject + " " + getMainReference(w).word : subject;
+					if(w.semanticRoles.get(verbPos).argument.equals(PropBankArgument.A1))
+						cd = cd + " "+  coref;// getMainReference(w).ner.matches("PER|PERSON|ORG|ORGANIZATION") ? cd + " " + getMainReference(w).word : cd;
+					
+				}else
+				{
+					if(!subject.isEmpty())
+						subject = subject + ",";
+					
+					if(!cd.isEmpty())
+						cd = cd + ",";
+				}
+				//sb.append(this.toString(w, v, w.semanticRoles.get(verbPos)));
+				//sb.append(System.lineSeparator());
+				
+				Timex3 timex = TimeMLHelper.getTimexFromFile(file, w);
+				if(timex != null)
+				{
+					MakeInstance mk = TimeMLHelper.getMakeInstanceFromFile(file, event.word);
+					if(timex.type.equals(TimeType.DATE))
+					{	
+						ArrayList<TimeLink> timeLinks = TimeMLHelper.getTimeLinksForTimexAndMakeInstance(file, timex, mk);
+						if(timeLinks.stream().allMatch(tl -> TimeMLHelper.getTimeLinkRelationTypeSimplified(tl.type, false).equals(TimeLinkRelationType.OVERLAP)))
+						{
+							if(timex.value.equals("PRESENT_REF"))
+							{
+								boolean hasBeenModified = false;
+								timeLinks = TimeMLHelper.getTimeLinksForMakeInstance(file, mk);
+								for(TimeLink tl : timeLinks)
+								{
+									if(tl.eventInstance != null && tl.equals(mk) && tl.relatedToEventInstance != null && TimeMLHelper.getTimeLinkRelationTypeSimplified(tl.type, false).equals(TimeLinkRelationType.OVERLAP))
+									{
+										ArrayList<TimeLink> relatedToRelatedEvent = TimeMLHelper.getTimeLinksForMakeInstance(file, tl.relatedToEventInstance);
+										Optional<TimeLink> optTL = relatedToRelatedEvent.stream().filter(timel -> TimeMLHelper.getTimeLinkRelationTypeSimplified(timel.type, false).equals(TimeLinkRelationType.OVERLAP) && timel.relatedToTime != null).findFirst();
+										if(optTL.isPresent())
+										{
+											when = when + " " + optTL.get().relatedToTime.value;
+											hasBeenModified = true;
+										}
+										
+										
+									}
+								}
+								if(!hasBeenModified)
+									when = when + " " + file.getDCT().value;
+								
+							//	TimeLink[] related = (TimeLink[]) timeLinks.stream().filter(tl -> (tl.eventInstance != null && tl.eventInstance.equals(mk) && tl.relatedToEventInstance != null) || (tl.relatedToEventInstance != null && tl.relatedToEventInstance.equals(mk) && tl.eventInstance != null)).toArray();
+								//int lenght = related.length;
+							}
+							else								
+								when = when + " " + timex.value;
+						}
+					}
+						
+				}else
+				{
+					MakeInstance mk = TimeMLHelper.getMakeInstanceFromFile(file, event.word);
+					if(mk != null)
+					{
+						ArrayList<TimeLink> timeLinks = TimeMLHelper.getTimeLinksForMakeInstance(file, mk);
+						
+					}
+					
+				}
+				
+			}
+			
+		}
+		Logger.Write("Sentence: " + sentenceSRL);
+		Logger.Write("who: " + subject);
+		Logger.Write("to whom: " + cd);
+		Logger.Write("when: " + when);
+		Logger.Write(System.lineSeparator());
+	
+	}
+	
+	private Coreference getMainReference(Word w)
+	{
+		Coreference returnWord = null;
+		LinkedList<Annotation> corefs = file.annotations.get(Coreference.class);
+		for(Annotation annotation : corefs)
+		{
+			Coreference mainCoref = (Coreference) annotation;
+			boolean containsWord = false;
+			if(!mainCoref.word.equals(w))
+			{
+			
+				for(Coreference c : mainCoref.coreferences)
+				{
+					if(c.word.equals(w))
+						returnWord = mainCoref;
+				}
+			}else
+			{
+				returnWord = mainCoref;
+			}
+				
+		}
+		
+		return returnWord;
 	}
 
 	private void processEventMention(EventMention eventMention, TokenizedSentence sentence) {

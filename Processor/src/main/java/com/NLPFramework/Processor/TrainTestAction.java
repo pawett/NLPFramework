@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 
 import com.NLPFramework.Domain.Language;
+import com.NLPFramework.Domain.TokenizedFile;
+import com.NLPFramework.Domain.TokenizedFileHashtable;
 import com.NLPFramework.Formatters.FeaturesEventAnnotatedFormatter;
 import com.NLPFramework.Formatters.FeaturesTimexAnnotatedFormatter;
 import com.NLPFramework.Formatters.ISentenceFormatter;
@@ -62,7 +64,9 @@ public class TrainTestAction implements IActionExecutor
 		// Check for features files (train/test)
 		if (rebuildDataSet || !new File(featuresTrainFilePath).exists()) 
 		{
-			FileConverter.tmldir2features(trainDir, approach);
+			TokenizedFileHashtable trainFiles = FileConverter.tmldir2features(trainDir, approach);
+			String featuresDir = trainDir.getParent() + File.separator + trainDir.getName() + "_" + approach + "_features" + File.separator;
+			FileHelper.saveFilesAsBinary(trainFiles, featuresDir);
 		}
 		
 		String featuresTestDir = testDir.getParent() + File.separator + testDir.getName() + "_" + approach + "_features";
@@ -70,7 +74,9 @@ public class TrainTestAction implements IActionExecutor
 		
 		if (rebuildDataSet || !new File(featuresTestFilePath).exists())
 		{
-			FileConverter.tmldir2features(testDir, approach);
+			TokenizedFileHashtable testFiles = FileConverter.tmldir2features(testDir, approach);
+			String featuresDir = testDir.getParent() + File.separator + testDir.getName() + "_" + approach + "_features" + File.separator;
+			FileHelper.saveFilesAsBinary(testFiles, featuresDir);
 		}
 		
 		TrainBase trainModel = null;

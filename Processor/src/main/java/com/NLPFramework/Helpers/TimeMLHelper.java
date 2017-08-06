@@ -1,6 +1,8 @@
 package com.NLPFramework.Helpers;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.LinkedList;
 import java.util.Optional;
 
 import com.NLPFramework.Crosscutting.Logger;
@@ -96,7 +98,7 @@ public class TimeMLHelper {
 		 return null;
 	 }
 	 
-	 
+	 //TODO:Check this does not sees to work properly
 	 public static Timex3 getTimexAnnotatedByDependantVerb(TimeMLFile file, Word depVerb) 
 	 {
 		 
@@ -145,6 +147,7 @@ public class TimeMLHelper {
 		 return file.get(w.sentenceNumber);
 	 }
 	 
+	 //TODO:Check this does not sees to work properly
 	 public static Timex3 getTimexByDependantVerb(TimeMLFile file, Word depVerb) 
 	 {
 		 Timex3 time = null;
@@ -531,6 +534,51 @@ public class TimeMLHelper {
 			
 			
 			return null;		
+			
+		}
+
+		public static ArrayList<TimeLink> getTimeLinksForTimex(TimeMLFile file, Timex3 timex) 
+		{
+			ArrayList<TimeLink> relatedTimeLinks = new ArrayList<>();
+			LinkedList<Annotation> timeLinks = file.annotations.get(TimeLink.class);
+			for(Annotation annotation : timeLinks)
+			{
+				TimeLink tl = (TimeLink) annotation;
+				if(tl.relatedToTime != null && tl.relatedToTime.equals(timex))
+					relatedTimeLinks.add(tl);
+			}
+			
+			return relatedTimeLinks;
+			
+		}
+		
+		public static ArrayList<TimeLink> getTimeLinksForTimexAndMakeInstance(TimeMLFile file, Timex3 timex, MakeInstance mk) 
+		{
+			ArrayList<TimeLink> relatedTimeLinks = new ArrayList<>();
+			LinkedList<Annotation> timeLinks = file.annotations.get(TimeLink.class);
+			for(Annotation annotation : timeLinks)
+			{
+				TimeLink tl = (TimeLink) annotation;
+				if(tl.relatedToTime != null && tl.relatedToTime.equals(timex) && ((tl.eventInstance != null && tl.eventInstance.equals(mk)) || (tl.relatedToEventInstance != null && tl.relatedToEventInstance.equals(mk))))
+					relatedTimeLinks.add(tl);
+			}
+			
+			return relatedTimeLinks;
+			
+		}
+		
+		public static ArrayList<TimeLink> getTimeLinksForMakeInstance(TimeMLFile file, MakeInstance makeInstance) 
+		{
+			ArrayList<TimeLink> relatedTimeLinks = new ArrayList<>();
+			LinkedList<Annotation> timeLinks = file.annotations.get(TimeLink.class);
+			for(Annotation annotation : timeLinks)
+			{
+				TimeLink tl = (TimeLink) annotation;
+				if((tl.eventInstance != null && tl.eventInstance.equals(makeInstance)) || (tl.relatedToEventInstance != null && tl.relatedToEventInstance.equals(makeInstance)))
+					relatedTimeLinks.add(tl);
+			}
+			
+			return relatedTimeLinks;
 			
 		}
 }

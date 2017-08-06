@@ -43,8 +43,16 @@ public class TokenizedFile extends LinkedList<TokenizedSentence>
 	
 	public String getOriginalText()
 	{
+		if(originalText == null)
+			return this.toString();
 		return originalText;
 	}
+	
+	public void setOriginalText(String originalText)
+	{
+		this.originalText = originalText;
+	}
+	
 	
 	
 	public void addAnnotation(Class<? extends Annotation> class1, Annotation annotation)

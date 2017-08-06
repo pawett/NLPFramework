@@ -236,7 +236,7 @@ public class TMLExtractor {
 				Node sentenceNode = sentences.item(i);
 				String fullLine = sentenceNode.getTextContent();
 				fullLine = FileHelper.formatText(fullLine);
-				if(!fullLine.endsWith(".") && !fullLine.endsWith("\'\'"))
+				if(!fullLine.endsWith(".") && !fullLine.endsWith("\""))
 				{
 					fullLine = fullLine + ".";
 					sentenceNode.getLastChild().setNodeValue(sentenceNode.getLastChild().getNodeValue()+ ".");

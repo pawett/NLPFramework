@@ -9,6 +9,7 @@ import com.NLPFramework.Domain.TokenizedFile;
 import com.NLPFramework.Domain.TokenizedFileHashtable;
 import com.NLPFramework.Formatters.IFileFormatter;
 import com.NLPFramework.Formatters.ISentenceFormatter;
+import com.NLPFramework.Helpers.FileHelper;
 import com.NLPFramework.Processor.FeatureExtractorEnglish;
 import com.NLPFramework.Processor.NLPProcessor;
 import com.NLPFramework.Processor.TemporalInformationProcessingStrategy;
@@ -55,7 +56,7 @@ public class TrainTMLBase extends TrainBase implements ITrainExecutor {
 
 			String featuresFilePath = featuresTrainDir + File.separator + "features.obj";
 
-			TokenizedFileHashtable files = new TokenizedFileHashtable(featuresFilePath);
+			TokenizedFileHashtable files = FileHelper.getBinaryFiles(featuresFilePath);
 			
 			/*files.keySet().parallelStream().forEach((fileName) -> {
 				TokenizedFile kFileTemp = files.get(fileName);
@@ -85,7 +86,7 @@ public class TrainTMLBase extends TrainBase implements ITrainExecutor {
 
 			String featuresFilePath = featuresTrainDir + File.separator + "features.obj";
 
-			TokenizedFileHashtable files = new TokenizedFileHashtable(featuresFilePath);
+			TokenizedFileHashtable files = FileHelper.getBinaryFiles(featuresFilePath);
 
 			File trainFile = new File(featuresTrainDir + File.separator + getApproachTypeElemName(filter) + ".pipes");
 			trainFile = files.toFile(formatter, trainFile.getAbsolutePath());

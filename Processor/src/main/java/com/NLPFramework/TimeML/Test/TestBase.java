@@ -7,6 +7,7 @@ import com.NLPFramework.Domain.Language;
 import com.NLPFramework.Domain.TokenizedFile;
 import com.NLPFramework.Domain.TokenizedFileHashtable;
 import com.NLPFramework.Formatters.ISentenceFormatter;
+import com.NLPFramework.Helpers.FileHelper;
 import com.NLPFramework.Helpers.FileUtils;
 import com.NLPFramework.Processor.EventProcessing;
 import com.NLPFramework.Processor.FeatureExtractorEnglish;
@@ -82,7 +83,7 @@ public class TestBase implements IActionExecutor {
 	public TokenizedFileHashtable getFiles()
 	{
 		String featuresTestPath = getFeaturesTestPath();
-		TokenizedFileHashtable files = new TokenizedFileHashtable(featuresTestPath);
+		TokenizedFileHashtable files = FileHelper.getBinaryFiles(featuresTestPath);
 
 	/*	files.keySet().parallelStream().forEach((fileName) -> {
 			TokenizedFile kFileTemp = files.get(fileName);

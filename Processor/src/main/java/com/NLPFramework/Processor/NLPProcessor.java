@@ -54,7 +54,7 @@ public class NLPProcessor
 	//private String approach;
 	private TokenizedFile file;
 	private File originalFile = null;
-	private TemporalInformationProcessingStrategy method;
+	private TemporalInformationProcessingStrategy method = new TemporalInformationProcessingStrategy(Configuration.getLanguage());
 	
 	TimeML tml = null;
 	
@@ -245,9 +245,11 @@ public class NLPProcessor
 	public void processTimex()
 	{
 		Logger.WriteDebug("Recognizing TIMEX3s");
+		;
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
 		String dctFile = sdf.format(new Date());
-		Date dct = DateTime.parse(dctFile).toDate();
+		Timex3 dctTimex = ((TimeMLFile)file).getDCT();
+		Date dct = dctTimex != null ? DateTime.parse(dctTimex.value).toDate() : DateTime.parse(dctFile).toDate();
 		TokenFileFormatter formatter = new TokenFileFormatter(file);
 		formatter.updateFromExternalTool(new StanfordNER(dct));
 		
@@ -340,6 +342,17 @@ public class NLPProcessor
 
 		method.getEventProcessing().getClassification().Test(file, Configuration.getModelsPath(), Configuration.getApproach(), "classification_event", file.getLanguage(), new EventClassikFormatter(), new EventClassikAnnotatedFormatter());
 		
+	}
+	
+	public void executeCoreference()
+	{
+		ActionCoreferenceCoreNLP action = new ActionCoreferenceCoreNLP();
+		try {
+			action.execute(file);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void setMakeInstancesFromEvents()

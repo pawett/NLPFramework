@@ -9,8 +9,8 @@ public class Coreference extends Annotation {
 	 */
 	private static final long serialVersionUID = 1L;
 	int offset = 0;
-	Word word = null;
-	ArrayList<Coreference> coreferences = new ArrayList<>();
+	public Word word = null;
+	public ArrayList<Coreference> coreferences = new ArrayList<>();
 	public Coreference(Word word, int offset)
 	{
 		this.word = word;
@@ -19,7 +19,22 @@ public class Coreference extends Annotation {
 	
 	public void addCoref(Coreference coref)
 	{
-		coreferences.add(coref);
+		if(coref != null && !this.word.equals(coref.word) && !coreferences.stream().anyMatch(c -> c.word.equals(coref.word)))
+			coreferences.add(coref);
+	}
+	
+	public String printCurrent()
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append(word);
+		Word nextWord = word.next;
+		for(int i = 1 ; i < offset; i++)
+		{
+			sb.append(" " + nextWord);
+			nextWord = nextWord.next;
+		}
+		
+		return sb.toString();
 	}
 	
 	public String toString()
@@ -27,7 +42,7 @@ public class Coreference extends Annotation {
 		StringBuilder sb = new StringBuilder();
 		sb.append(word);
 		Word nextWord = word.next;
-		for(int i = 1 ; i <= offset; i++)
+		for(int i = 1 ; i < offset; i++)
 		{
 			sb.append(" " + nextWord);
 			nextWord = nextWord.next;

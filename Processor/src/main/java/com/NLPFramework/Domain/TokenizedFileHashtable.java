@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -17,12 +18,17 @@ import com.NLPFramework.Helpers.FileHelper;
 import com.NLPFramework.Helpers.FileUtils;
 
 
-public class TokenizedFileHashtable extends Hashtable<String,TokenizedFile>
+public class TokenizedFileHashtable extends Hashtable<String,TokenizedFile> implements Serializable
 {
 	
 	
 	
-	public TokenizedFileHashtable(String path)
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1979353129807571724L;
+
+	/*public TokenizedFileHashtable(String path)
 	{
 		FileInputStream fin = null;
 		ObjectInputStream ois = null;
@@ -51,7 +57,7 @@ public class TokenizedFileHashtable extends Hashtable<String,TokenizedFile>
 		{
 			Logger.WriteError("Error reading binary file", ex);
 		}
-	}
+	}*/
 	
 	public TokenizedFileHashtable() {
 		// TODO Auto-generated constructor stub
