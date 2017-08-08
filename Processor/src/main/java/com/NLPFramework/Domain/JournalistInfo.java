@@ -4,7 +4,7 @@ import com.NLPFramework.TimeML.Domain.Event;
 import com.NLPFramework.TimeML.Domain.Timex3;
 
 
-public class JournalistInfo 
+public class JournalistInfo  extends Annotation
 {
 	public Event what;
 	public Entity actor;

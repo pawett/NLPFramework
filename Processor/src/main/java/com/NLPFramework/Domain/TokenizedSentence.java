@@ -116,6 +116,11 @@ public class TokenizedSentence  extends LinkedList<Word>{
 		annotations.get(class1).put(w, (EntityMapper<Annotation>) eMap);
 	}
 	
+	public Event getEventByWord(Word w)
+	{
+		return (Event)annotations.get(Event.class).get(w).element;
+	}
+	
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder();

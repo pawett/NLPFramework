@@ -5,6 +5,8 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Optional;
 
+import javax.ws.rs.core.Response;
+
 import com.NLPFramework.Crosscutting.Logger;
 import com.NLPFramework.Domain.Annotation;
 import com.NLPFramework.Domain.Coreference;
@@ -13,6 +15,8 @@ import com.NLPFramework.Domain.TokenizedSentence;
 import com.NLPFramework.Domain.Word;
 import com.NLPFramework.Helpers.TimeMLHelper;
 import com.NLPFramework.NewsReader.Domain.EventMention;
+import com.NLPFramework.RESTClient.ClientBase;
+import com.NLPFramework.RESTClient.DBpediaResource;
 import com.NLPFramework.TimeML.Domain.EntityMapper;
 import com.NLPFramework.TimeML.Domain.Event;
 import com.NLPFramework.TimeML.Domain.MakeInstance;
@@ -21,8 +25,6 @@ import com.NLPFramework.TimeML.Domain.TimeLinkRelationType;
 import com.NLPFramework.TimeML.Domain.TimeMLFile;
 import com.NLPFramework.TimeML.Domain.TimeType;
 import com.NLPFramework.TimeML.Domain.Timex3;
-
-import edu.stanford.nlp.util.HashableCoreMap.HashableCoreMapException;
 
 
 
@@ -146,6 +148,8 @@ public class TimeLineProcessor
 		String sentenceSRL = "";
 		for(Word w : sentence)
 		{
+			if(w.pos.equals("WDT"))
+				break;
 			/*if(events.contains(w))
 			{
 				MakeInstance event = (MakeInstance) events.get(w).element;
@@ -161,12 +165,12 @@ public class TimeLineProcessor
 				String coref = w.word;
 				if(getMainReference(w) != null)
 					coref = getMainReference(w).printCurrent();
-				if(w.ner.matches("PER|PERSON|ORG|ORGANIZATION"))
+				if(!w.ner.matches("O"))//PER|PERSON|ORG|ORGANIZATION
 				{
 					if(w.semanticRoles.get(verbPos).argument.equals(PropBankArgument.A0))
-						subject =  subject + " " + coref ;//.ner.matches("PER|PERSON|ORG|ORGANIZATION") ? subject + " " + getMainReference(w).word : subject;
+						subject =  subject + " " + w.word ;//.ner.matches("PER|PERSON|ORG|ORGANIZATION") ? subject + " " + getMainReference(w).word : subject;
 					if(w.semanticRoles.get(verbPos).argument.equals(PropBankArgument.A1))
-						cd = cd + " "+  coref;// getMainReference(w).ner.matches("PER|PERSON|ORG|ORGANIZATION") ? cd + " " + getMainReference(w).word : cd;
+						cd = cd + " "+  w.word;// getMainReference(w).ner.matches("PER|PERSON|ORG|ORGANIZATION") ? cd + " " + getMainReference(w).word : cd;
 					
 				}else
 				{
@@ -232,6 +236,17 @@ public class TimeLineProcessor
 			}
 			
 		}
+		
+		if(when.isEmpty())
+			when = when + " " + file.getDCT().value;
+		
+		if(!subject.isEmpty()){
+		ClientBase base = new ClientBase();
+		Response response = base.get(subject);
+		DBpediaResource output = response.readEntity(DBpediaResource.class);
+		subject = output.getResources() != null && !output.getResources().isEmpty() ? output.getResources().get(0).getSupport() : subject;
+		}
+		
 		Logger.Write("Sentence: " + sentenceSRL);
 		Logger.Write("who: " + subject);
 		Logger.Write("to whom: " + cd);
