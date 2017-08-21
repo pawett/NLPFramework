@@ -238,10 +238,10 @@ public class TMLExtractor {
 				fullLine = FileHelper.formatText(fullLine);
 				if(!fullLine.endsWith(".") && !fullLine.endsWith("\""))
 				{
-					fullLine = fullLine + ".";
+					fullLine = fullLine + " .";
 					sentenceNode.getLastChild().setNodeValue(sentenceNode.getLastChild().getNodeValue()+ ".");
 				}
-				sbDocument.append(fullLine);
+				sbDocument.append(fullLine+" ");
 				sb.append(System.lineSeparator());
 
 			}
@@ -261,7 +261,7 @@ public class TMLExtractor {
 		TokenizedFile featuresFile = nlpProcessor.execute(actions);*/
 		
 		TokenizedFile featuresFile = nlpProcessor.getFeatures();
-
+		featuresFile.setOriginalText(fullText);
 		TimeMLFile tmlFile = new TimeMLFile(featuresFile);
 		NodeList timexes = doc.getElementsByTagName("TIMEX3");
 		setDCT(tmlFile, timexes);
@@ -492,7 +492,8 @@ public class TMLExtractor {
 	private static EntityMapper<Event> getEventFromText(TokenizedSentence sentence, Node current, EntityMapper<Event> eMap,
 			Word token) {
 		if(eMap == null)
-		{						
+		{		
+			token.isVerb = token.pos.startsWith("VB");
 			Node parentNode = current.getParentNode();
 			NamedNodeMap parentNodeAttributes = parentNode.getAttributes();
 			
@@ -534,6 +535,9 @@ public class TMLExtractor {
 					timeDCT.temporalFunction = Boolean.parseBoolean(dctNode.getAttributes().getNamedItem("temporalFunction").getNodeValue());
 				featuresFile.setDCT(timeDCT);
 			}
+		}else
+		{
+			Logger.WriteDebug("No DCT found in this file");
 		}
 	}
 	

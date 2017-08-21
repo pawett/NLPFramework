@@ -19,6 +19,7 @@ public class TokenizedSentence  extends LinkedList<Word>{
 	public String synt;
 	public LinkedList<TokenizedSentence> subSentences = new LinkedList<>();
 	public ArrayList<Word> verbs = new ArrayList<>();
+	public Hashtable<Word, Hashtable<PropBankArgument,SemanticRole>> semanticRoles = new Hashtable<>();
 	/*public Hashtable<Word,ArrayList<Word>> events = new Hashtable<Word, ArrayList<Word>>();
 	public Hashtable<Word,ArrayList<Word>> times = new  Hashtable<Word,ArrayList<Word>>();
 	*/
@@ -44,21 +45,39 @@ public class TokenizedSentence  extends LinkedList<Word>{
 	
 	public Word getSubsentenceVerb(TokenizedSentence sentence)
 	{
+		Word verb = null;
 		if(sentence == null)
 			return null;
-		if(sentence.verbs != null && sentence.verbs.size() > 0 && sentence.verbs.get(0).isVerb)
-			return sentence.verbs.get(0);
-		else if(sentence.prev != null)
-			return getSubsentenceVerb(sentence.prev);
+		for(TokenizedSentence s : sentence.subSentences)
+		{
+			if(!s.isEmpty() && s.element() != null && s.element().isVerb)
+				verb = s.element();
+			else
+				verb = getSubsentenceVerb(s);
+			if(verb != null)
+				return verb;
+		}
 		
-		return null;
+	
+		
+		return verb;
 				
 	}
 	
 	public Word getWordDependantVerb(Word w)
 	{
+		
 		TokenizedSentence sentence = getWordSubSentence(w);
-		return getSubsentenceVerb(sentence);
+		Word verb = getSubsentenceVerb(sentence);
+		if(verb != null)
+			return verb;
+		
+			while(verb == null &&  sentence.prev != null && !sentence.synt.equals("S"))
+			{
+				sentence = sentence.prev;
+				verb = getSubsentenceVerb(sentence);
+			}
+		return verb;
 	}
 	
 	public TokenizedSentence getWordSubSentence(Word w)

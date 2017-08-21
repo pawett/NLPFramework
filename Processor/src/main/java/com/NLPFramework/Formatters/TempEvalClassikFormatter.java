@@ -131,7 +131,7 @@ public class TempEvalClassikFormatter implements IWordFormatter {
 	 private String extra1Rec = null;
 	 public String getGovExtra1(Word w)
 	 {
-		 extra1Rec = w.extra1;
+		 extra1Rec = w.syntacticTree;
 		 if(w.govWord != null) 
 		 {
 			 extra1Rec += "_"+ getGovExtra1(w.govWord);
@@ -168,7 +168,7 @@ public class TempEvalClassikFormatter implements IWordFormatter {
 		w.mainphraseIOB= pipeArray[11];
 		w.preposition= pipeArray[12];
 		w.wn= pipeArray[13];*/
-		w.extra1= pipeArray[14];
+		w.syntacticTree= pipeArray[14];
 		w.extra2= pipeArray[15];
 		w.extra3= pipeArray[16];
 		w.extra4= pipeArray[17];

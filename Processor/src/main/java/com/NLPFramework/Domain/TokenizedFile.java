@@ -44,7 +44,16 @@ public class TokenizedFile extends LinkedList<TokenizedSentence>
 	public String getOriginalText()
 	{
 		if(originalText == null)
-			return this.toString();
+		{
+			StringBuilder sb = new StringBuilder();
+			for(TokenizedSentence s : this)
+			{
+				sb.append(s.getOriginalText());
+				sb.append(System.lineSeparator());
+			}
+			setOriginalText(sb.toString());
+		}
+
 		return originalText;
 	}
 	

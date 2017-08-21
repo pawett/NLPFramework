@@ -1,8 +1,9 @@
-package com.NLPFramework.Formatters;
+package com.NLPFramework.Formatters.TimeML;
 
 import java.util.LinkedList;
 
 import com.NLPFramework.Domain.Word;
+import com.NLPFramework.Formatters.IFileFormatter;
 import com.NLPFramework.Helpers.PipesHelper;
 import com.NLPFramework.Helpers.TimeMLHelper;
 import com.NLPFramework.TimeML.Domain.EventAspect;

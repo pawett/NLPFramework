@@ -1,7 +1,8 @@
-package com.NLPFramework.Formatters;
+package com.NLPFramework.Formatters.TimeML;
 
 import com.NLPFramework.Domain.TokenizedSentence;
 import com.NLPFramework.Domain.Word;
+import com.NLPFramework.Formatters.IFileFormatter;
 import com.NLPFramework.Helpers.PipesHelper;
 import com.NLPFramework.Helpers.TimeMLHelper;
 import com.NLPFramework.TimeML.Domain.EventAspect;
@@ -90,7 +91,7 @@ public class EventTimexRelationFormatter  implements IFileFormatter
 			if(!mkInstance.event.word.isVerb)
 			{	//sb.append(PipesHelper.AppendPipes(depVerb.tense));
 			sb.append(PipesHelper.AppendPipes(TimeMLHelper.getEventTenseFromWordTense(depVerb.tense)));
-			sb.append(PipesHelper.AppendPipes(TimeMLHelper.getEventAspectFromTense(mkInstance.event.word.depverb.tense)));
+			sb.append(PipesHelper.AppendPipes(TimeMLHelper.getEventAspectFromTense(depVerb.tense)));
 			}else
 			{
 				sb.append(PipesHelper.AppendPipes(mkInstance.tense));

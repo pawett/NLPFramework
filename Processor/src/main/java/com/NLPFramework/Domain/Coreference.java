@@ -8,7 +8,7 @@ public class Coreference extends Annotation {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	int offset = 0;
+	public int offset = 0;
 	public Word word = null;
 	public ArrayList<Coreference> coreferences = new ArrayList<>();
 	public Coreference(Word word, int offset)
@@ -28,7 +28,7 @@ public class Coreference extends Annotation {
 		StringBuilder sb = new StringBuilder();
 		sb.append(word);
 		Word nextWord = word.next;
-		for(int i = 1 ; i < offset; i++)
+		for(int i = 1 ; i < offset && nextWord != null; i++)
 		{
 			sb.append(" " + nextWord);
 			nextWord = nextWord.next;

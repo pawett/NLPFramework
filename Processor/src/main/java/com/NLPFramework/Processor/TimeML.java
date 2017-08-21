@@ -18,7 +18,7 @@ import com.NLPFramework.Domain.PropBankArgument;
 import com.NLPFramework.Domain.TokenizedSentence;
 import com.NLPFramework.Domain.Word;
 import com.NLPFramework.Files.TimeMLDocument;
-import com.NLPFramework.Formatters.ITLinkFormatter;
+import com.NLPFramework.Formatters.TimeML.ITLinkFormatter;
 import com.NLPFramework.Helpers.TimeMLHelper;
 import com.NLPFramework.TimeML.Domain.EntityMapper;
 import com.NLPFramework.TimeML.Domain.Event;

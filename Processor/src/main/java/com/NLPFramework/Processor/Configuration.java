@@ -89,9 +89,9 @@ public class Configuration
 		modelsPath = path;
 	}
 	
-	public static INLPAction getClassForAction(Class<? extends INLPAction> actionClass, String filePath)
+	public static INLPActionFile getClassForAction(Class<? extends INLPActionFile> actionClass, String filePath)
 	{
-		Map<Class<? extends INLPAction>, INLPAction> mapping = new HashMap<>();//<ArrayList<Class<? extends INLPAction>>, INLPAction>();
+		Map<Class<? extends INLPActionFile>, INLPActionFile> mapping = new HashMap<>();//<ArrayList<Class<? extends INLPAction>>, INLPAction>();
 		
 		mapping.put(ActionSentenceSplitterBase.class, new ActionSentenceSplitterCoreNLP(filePath));
 		mapping.put(ActionTokenizerBase.class, new ActionTokenizerCoreNLP());

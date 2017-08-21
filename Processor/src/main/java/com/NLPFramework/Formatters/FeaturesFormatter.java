@@ -20,7 +20,7 @@ public class FeaturesFormatter implements ISentenceFormatter {
 			//Logger.Write("Sentence for " + v.word);
 			for(Word w : sentence)
 			{
-				if(w.semanticRoles != null && w.semanticRoles.get(verbPos) != null && w.semanticRoles.get(verbPos).argument != null)
+				if(w.semanticRoles != null && verbPos < w.semanticRoles.size() && w.semanticRoles.get(verbPos) != null && w.semanticRoles.get(verbPos).argument != null)
 				{
 					sb.append(this.toString(w, v, w.semanticRoles.get(verbPos)));
 					sb.append(System.lineSeparator());
@@ -123,6 +123,7 @@ public class FeaturesFormatter implements ISentenceFormatter {
 			sb.append(PipesHelper.AppendPipes("-"));
 
 		sb.append(PipesHelper.AppendPipes(w.semanticRole));
+		
 		if(w.depverb!= null)
 		{
 			sb.append(PipesHelper.AppendPipes(w.depverb.lemma));

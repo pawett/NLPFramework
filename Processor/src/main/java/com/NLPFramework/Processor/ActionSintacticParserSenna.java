@@ -39,7 +39,7 @@ public class ActionSintacticParserSenna extends ActionSintacticParserBase {
 					
 					if(currentWord.word.equals(word))
 					{
-						currentWord.extra1 = syntacticParse;
+						currentWord.syntacticTree = syntacticParse;
 					}
 					else
 						Logger.WriteDebug(String.format("%s does not match with %s", currentWord.word, word));

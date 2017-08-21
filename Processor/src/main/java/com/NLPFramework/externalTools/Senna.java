@@ -13,18 +13,19 @@ import com.NLPFramework.Formatters.TokenFileFormatter;
 import com.NLPFramework.Helpers.FileHelper;
 
 
-public class Senna implements ITextProcessor {
+public class Senna extends BashProcessBase implements ITextProcessor {
 
     private static String program_path = "/home/pawett/tipSem/senna/";
     private static String program_bin = program_path + "senna-linux64";
    
 
  
-    public static TokenizedFile run(String originalFilename, String lang, int tokenize, TokenizedFile file) {
+   /* public static TokenizedFile run(String originalFilename, String lang, int tokenize, TokenizedFile file) {
         String outputfile = originalFilename + ".roth";
         try {
            
             String[] command = {"/bin/sh","-c","cat \""+originalFilename+"\" | "+program_bin + " -path " + program_path};
+            run(command);
             //String[] command = {"/bin/sh","-c","cat \""+filename+"\" | "+program_bin+" "+String.valueOf(tokenize)+" 1 | "+program_bin2+" -f rothcomplete | sed \"s/^[[:blank:]]*\\$/|/\""};
             Process p = Runtime.getRuntime().exec(command);
             
@@ -59,7 +60,7 @@ public class Senna implements ITextProcessor {
         return file;
 
     }
-
+*/
 
 
 	@Override
@@ -76,30 +77,8 @@ public class Senna implements ITextProcessor {
 		try {
 			FileHelper.formatText(text);
 			String[] command = {"/bin/sh","-c","echo \""+text+"\" | "+program_bin + " -path " + program_path + " -iobtags -usrtokens"};// -posvbs
-			//String[] command = {"/bin/sh","-c","cat \""+filename+"\" | "+program_bin+" "+String.valueOf(tokenize)+" 1 | "+program_bin2+" -f rothcomplete | sed \"s/^[[:blank:]]*\\$/|/\""};
-			Process p = Runtime.getRuntime().exec(command);
-
-			BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			try {
-				String line;
-				while ((line = stdInput.readLine()) != null) {
-					result.append(line);
-					result.append(System.lineSeparator());
-				}
-
-			} finally {
-				if (stdInput != null) {
-					stdInput.close();
-				}
-
-				if(p!=null){
-					p.getInputStream().close();
-					p.getOutputStream().close();
-					p.getErrorStream().close();
-					p.destroy();
-				}
-			}
-
+			result.append(run(command));
+			
 		} catch (Exception e) {
 			Logger.WriteError("Errors found (Senna):\n\t" , e);
 
@@ -118,28 +97,8 @@ public class Senna implements ITextProcessor {
 			
 			String[] command = {"/bin/sh","-c","echo \""+sentence+"\" | "+program_bin + " -path " + program_path + " -ner -usrtokens -iobtags"};// -posvbs
 	
+			result.append(run(command));
 			Process p = Runtime.getRuntime().exec(command);
-
-			BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			try {
-				String line;
-				while ((line = stdInput.readLine()) != null) {
-					result.append(line);
-					result.append(System.lineSeparator());
-				}
-
-			} finally {
-				if (stdInput != null) {
-					stdInput.close();
-				}
-
-				if(p!=null){
-					p.getInputStream().close();
-					p.getOutputStream().close();
-					p.getErrorStream().close();
-					p.destroy();
-				}
-			}
 
 		} catch (Exception e) {
 			Logger.WriteError("Errors found (Senna):\n\t" , e);
@@ -155,38 +114,16 @@ public class Senna implements ITextProcessor {
 	public String runSRLFromSentence(String sentence)
 	{
 		StringBuilder result = new StringBuilder();
-		try {
-			
+		try 
+		{	
 			String[] command = {"/bin/sh","-c","echo \""+sentence+"\" | "+program_bin + " -path " + program_path + " -srl -usrtokens -iobtags"};// -posvbs
 	
-			Process p = Runtime.getRuntime().exec(command);
-
-			BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			try {
-				String line;
-				while ((line = stdInput.readLine()) != null) {
-					result.append(line);
-					result.append(System.lineSeparator());
-				}
-
-			} finally {
-				if (stdInput != null) {
-					stdInput.close();
-				}
-
-				if(p!=null){
-					p.getInputStream().close();
-					p.getOutputStream().close();
-					p.getErrorStream().close();
-					p.destroy();
-				}
-			}
+			result.append(run(command));
 
 		} catch (Exception e) {
 			Logger.WriteError("Errors found (Senna):\n\t" , e);
 
 			System.exit(1);
-
 			return null;
 		}
 		return result.toString();

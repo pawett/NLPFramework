@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import com.NLPFramework.Domain.Language;
 import com.NLPFramework.Domain.TokenizedFile;
 import com.NLPFramework.Domain.TokenizedFileHashtable;
-import com.NLPFramework.Formatters.FeaturesEventAnnotatedFormatter;
-import com.NLPFramework.Formatters.FeaturesTimexAnnotatedFormatter;
 import com.NLPFramework.Formatters.ISentenceFormatter;
+import com.NLPFramework.Formatters.TimeML.FeaturesEventAnnotatedFormatter;
+import com.NLPFramework.Formatters.TimeML.FeaturesTimexAnnotatedFormatter;
 import com.NLPFramework.Helpers.FileConverter;
 import com.NLPFramework.Helpers.FileHelper;
 import com.NLPFramework.TimeML.Test.TestBase;
@@ -31,11 +31,10 @@ import com.NLPFramework.externalTools.IMachineLearningMethod;
 import com.NLPFramework.externalTools.SVM;
 
 
-public class TrainTestAction implements IActionExecutor 
+public class TrainAction implements IActionExecutor 
 {
 
 	private File trainDir;
-	private File testDir;
 	private String approach;
 	private Language lang;
 	private boolean rebuildDataSet;
@@ -43,10 +42,9 @@ public class TrainTestAction implements IActionExecutor
 	private String task;
 	IMachineLearningMethod mlMethod;
 	
-	public TrainTestAction(String task, String element, File train_dir, File test_dir, String approach, Language lang, boolean rebuild_database, IMachineLearningMethod mlMethod)
+	public TrainAction(String task, String element, File train_dir, String approach, Language lang, boolean rebuild_database, IMachineLearningMethod mlMethod)
 	{
 		trainDir = train_dir;
-		testDir = test_dir;
 		this.approach = approach;
 		this.lang = lang;
 		this.rebuildDataSet = rebuild_database;	
@@ -69,21 +67,10 @@ public class TrainTestAction implements IActionExecutor
 			FileHelper.saveFilesAsBinary(trainFiles, featuresDir);
 		}
 		
-		String featuresTestDir = testDir.getParent() + File.separator + testDir.getName() + "_" + approach + "_features";
-		String featuresTestFilePath = featuresTestDir + File.separator + "features.obj";
-		
-		if (rebuildDataSet || !new File(featuresTestFilePath).exists())
-		{
-			TokenizedFileHashtable testFiles = FileConverter.tmldir2features(testDir, approach);
-			String featuresDir = testDir.getParent() + File.separator + testDir.getName() + "_" + approach + "_features" + File.separator;
-			FileHelper.saveFilesAsBinary(testFiles, featuresDir);
-		}
-		
+	
 		TrainBase trainModel = null;
-		TestBase testModel = null;
 
-		File modelDir = FileHelper.GetFileAndCreateDir(trainDir.getParent() + File.separator + "experiments_tml" + File.separator + approach + File.separator);
-		
+		File modelDir = FileHelper.GetFileAndCreateDir(trainDir.getParent() + File.separator + "experiments_tml" + File.separator + approach + File.separator);		
 		
 		switch(element.toLowerCase())
 		{
@@ -97,15 +84,11 @@ public class TrainTestAction implements IActionExecutor
 					trainModel.execute();
 					trainModel = new TrainEventRecognition(trainDir, modelDir, approach, lang, mlMethod, "NN");
 					trainModel.execute();
-					
-					testModel = new TestEventRecognition(testDir, modelDir, approach, task, lang, mlMethod, null);
-					testModel.execute();
+
 					break;
 				case "classification":
 					trainModel = new TrainEventClassification(trainDir, modelDir, approach, lang, mlMethod, null);
 					trainModel.execute();
-					testModel = new TestEventClassification(testDir, modelDir, approach, task, lang, mlMethod, null);
-					testModel.execute();
 					break;
 				}
 				break;
@@ -113,12 +96,10 @@ public class TrainTestAction implements IActionExecutor
 				switch(task.toLowerCase())
 				{
 					case "recognition":
-						testModel = new TestTimexRecognition(testDir, modelDir, approach, task,lang, mlMethod, null);
-						testModel.execute();
+
 						break;
 					case "classification":
-						testModel = new TestTimexClassification(testDir, modelDir, approach, task, lang, mlMethod, null);
-						testModel.execute();
+
 						break;
 				}
 				break;
@@ -128,8 +109,7 @@ public class TrainTestAction implements IActionExecutor
 					case "classification":
 						trainModel = new TrainEventTimexClassification(trainDir, modelDir, approach, lang, mlMethod, null);
 						trainModel.execute();
-						testModel = new TestEventTimexClassification(testDir, modelDir, approach, task, lang, mlMethod, null);
-						testModel.execute();
+
 						break;
 				}
 				break;
@@ -140,8 +120,6 @@ public class TrainTestAction implements IActionExecutor
 					case "classification":
 						trainModel = new TrainEventDCTClassification(trainDir, modelDir, approach, lang, mlMethod, null);
 						trainModel.execute();
-						testModel = new TestEventDCTClassification(testDir, modelDir, approach, task, lang, mlMethod, null);
-						testModel.execute();
 						break;
 				}
 				break;
@@ -151,8 +129,6 @@ public class TrainTestAction implements IActionExecutor
 					case "classification":
 						trainModel = new TrainEventEventClassification(trainDir, modelDir, approach, lang, mlMethod, null);
 						trainModel.execute();
-						testModel = new TestEventEventClassification(testDir, modelDir, approach, task, lang, mlMethod, null);
-						testModel.execute();
 						break;
 				}
 				break;
@@ -162,8 +138,6 @@ public class TrainTestAction implements IActionExecutor
 					case "classification":
 						trainModel = new TrainEventSubEventClassification(trainDir, modelDir, approach,  lang, mlMethod, null);
 						trainModel.execute();
-						testModel = new TestEventSubEventClassification(testDir, modelDir, approach, task, lang, mlMethod, null);
-						testModel.execute();
 						break;
 				}
 				break;
@@ -177,34 +151,22 @@ public class TrainTestAction implements IActionExecutor
 				trainModel = new TrainEventRecognition(trainDir, modelDir, approach, lang, mlMethod, "NN");
 				trainModel.execute();
 				
-				testModel = new TestEventRecognition(testDir, modelDir, approach, task, lang, mlMethod, null);
-				testModel.execute();
 				
 				mlMethod = new SVM();
 				trainModel = new TrainEventClassification(trainDir, modelDir, approach, lang, mlMethod, null);
 				trainModel.execute();
-				testModel = new TestEventClassification(testDir, modelDir, approach,task, lang, mlMethod, null);
-				testModel.execute();
 				
 				trainModel = new TrainEventTimexClassification(trainDir, modelDir, approach, lang, mlMethod, null);
 				trainModel.execute();
-				testModel = new TestEventTimexClassification(testDir, modelDir, approach, task, lang, mlMethod, null);
-				testModel.execute();
 				
 				trainModel = new TrainEventDCTClassification(trainDir, modelDir, approach, lang, mlMethod, null);
 				trainModel.execute();
-				testModel = new TestEventDCTClassification(testDir, modelDir, approach, task, lang, mlMethod, null);
-				testModel.execute();
 				
 				trainModel = new TrainEventEventClassification(trainDir, modelDir, approach, lang, mlMethod, null);
 				trainModel.execute();
-				testModel = new TestEventEventClassification(testDir, modelDir, approach, task, lang, mlMethod, null);
-				testModel.execute();
 				
 				trainModel = new TrainEventSubEventClassification(trainDir, modelDir, approach, lang, mlMethod, null);
 				trainModel.execute();
-				testModel = new TestEventSubEventClassification(testDir, modelDir, approach, task, lang, mlMethod, null);
-				testModel.execute();
 		}
 		
 		

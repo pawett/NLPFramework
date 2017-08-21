@@ -20,6 +20,7 @@ import com.NLPFramework.TimeML.Domain.Timex3Date;
 import com.NLPFramework.TimeML.Domain.Timex3Duration;
 import com.NLPFramework.TimeML.Domain.Timex3Set;
 import com.NLPFramework.TimeML.Domain.Timex3Time;
+import org.apache.commons.lang3.StringUtils;
 
 public class TimeMLHelper {
 
@@ -147,7 +148,7 @@ public class TimeMLHelper {
 		 return file.get(w.sentenceNumber);
 	 }
 	 
-	 //TODO:Check this does not sees to work properly
+	 //TODO:Check this does not seems to work properly
 	 public static Timex3 getTimexByDependantVerb(TimeMLFile file, Word depVerb) 
 	 {
 		 Timex3 time = null;
@@ -252,7 +253,7 @@ public class TimeMLHelper {
 			 
 		 }
 		 
-		 return file.getDCT(); //contextTime;
+		 return contextTime; //contextTime;
 	 }
 	 
 	 public static Timex3 getTimexFromFile(TimeMLFile file, Word w)
@@ -339,14 +340,19 @@ public class TimeMLHelper {
 		 
 		 return true;
 	 }
+	 	 
 	 public static TokenizedSentence getSentenceForSubsentence(TokenizedSentence s)
 	 {
-		 if(s.synt.equalsIgnoreCase("S") || s.synt.equalsIgnoreCase("SBAR"))
-			 return s;
+		 TokenizedSentence sentence = s;
+		 if(s.prev == null || ((s != null && s.synt != null) && (s.synt.equalsIgnoreCase("S") || s.synt.equalsIgnoreCase("SBAR"))))
+			 sentence = s;
 		 else
-			 return getSentenceForSubsentence(s.prev);
+			 sentence = getSentenceForSubsentence(s.prev);
+		 
+		 return sentence;
 	 }
 	 
+		 
 	 public static TokenizedSentence getWordSentence(TokenizedSentence s, Word w)
 	 {
 		 TokenizedSentence wordSubSentence = null;
@@ -358,7 +364,7 @@ public class TimeMLHelper {
 		 {
 			 TokenizedSentence subSentence = subsentence.getWordSubSentence(w);
 			 if(subSentence != null)
-				 return subSentence;
+				 return  getSentenceForSubsentence(subSentence);
 		 }
 		 return wordSubSentence;
 	 }
@@ -377,6 +383,21 @@ public class TimeMLHelper {
 			}
 			return null;
 		}
+	 
+	 public static Word getWordFromCharacterPositionAndWord(TokenizedSentence s, int position, String word)
+	 {
+		 int currentPosition = 0;
+		
+		 for(Word currentWord : s)
+		 {
+			//Logger.Write("Word distance : " + StringUtils.getLevenshteinDistance(currentWord.word, word));
+			 currentPosition = currentPosition + currentWord.word.length();
+			 if(currentPosition > position && currentWord.word.equals(word))
+				 return currentWord;
+			 currentPosition ++;
+		 }
+		 return null;
+	 }
 	 
 	 public static String getTimexRelation(Timex3 from, Timex3 to) 
 	 {

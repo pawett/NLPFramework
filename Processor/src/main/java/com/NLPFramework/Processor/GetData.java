@@ -1,9 +1,9 @@
 package com.NLPFramework.Processor;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.NLPFramework.Domain.TokenizedFile;
 import com.NLPFramework.Domain.TokenizedFileHashtable;
@@ -34,11 +34,11 @@ public class GetData implements IActionExecutor {
 		if (!new File(featuresTrainFilePath).exists()) 
 		{
 			files = FileConverter.tmldir2features(dataPath, "SemEval4");
-			Iterator<Map.Entry<String,TokenizedFile>> it = files.entrySet().iterator();
+			Iterator<Entry<String, TokenizedFile>> it = files.entrySet().iterator();
 			//TODO: extract timeLine
 			while(it.hasNext())
 			{
-				TokenizedFile file = it.next().getValue();
+				TimeMLFile file = (TimeMLFile) it.next().getValue();
 				NLPProcessor processor = new NLPProcessor(file);
 				processor.executeCoreference();
 				processor.classifyEvents();
@@ -46,6 +46,8 @@ public class GetData implements IActionExecutor {
 				processor.processTimex();
 				processor.setIds();
 				processor.RecognizeTLINKS();
+				ActionNEDDbPedia ned = new ActionNEDDbPedia();
+				ned.execute(file);
 				
 				TimeMLFile timeMLFile = new TimeMLFile(processor.getFile());
 			//	ret = processor.getTimeMLFile().toTML(timeMLFile);
@@ -63,7 +65,7 @@ public class GetData implements IActionExecutor {
 		while(it.hasNext())
 		{
 			TokenizedFile file = it.next().getValue();
-			TimeMLFile timeMlFile = new TimeMLFile(file);
+			TimeMLFile timeMlFile = (TimeMLFile)file;
 			TimeLineProcessor tlProcessor = new TimeLineProcessor(timeMlFile);
 			tlProcessor.execute();
 		}

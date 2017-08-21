@@ -3,8 +3,8 @@ package com.NLPFramework.TimeML.Train;
 import java.io.File;
 
 import com.NLPFramework.Domain.Language;
-import com.NLPFramework.Formatters.EventSubEventRelationAnnotatedFormatter;
 import com.NLPFramework.Formatters.IFileFormatter;
+import com.NLPFramework.Formatters.TimeML.EventSubEventRelationAnnotatedFormatter;
 import com.NLPFramework.Processor.IActionExecutor;
 import com.NLPFramework.Processor.TemporalInformationProcessingStrategy;
 import com.NLPFramework.externalTools.IMachineLearningMethod;

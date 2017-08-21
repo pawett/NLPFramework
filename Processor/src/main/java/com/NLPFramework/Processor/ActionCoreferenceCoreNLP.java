@@ -1,5 +1,6 @@
 package com.NLPFramework.Processor;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -20,8 +21,12 @@ import edu.stanford.nlp.coref.CorefCoreAnnotations.CorefMentionsAnnotation;
 import edu.stanford.nlp.coref.data.CorefChain;
 import edu.stanford.nlp.coref.data.CorefChain.CorefMention;
 import edu.stanford.nlp.coref.data.Mention;
+import edu.stanford.nlp.ie.util.RelationTriple;
+import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreAnnotations.IndexAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
+import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.naturalli.NaturalLogicAnnotations;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.util.CoreMap;
@@ -46,10 +51,28 @@ public class ActionCoreferenceCoreNLP extends ActionTokenizerBase {
 			for(CorefMention subordinateMention : corefs.getMentionsInTextualOrder())
 			{
 				Coreference subCoreference = setCoreference(tokFile, subordinateMention);
-				mainCoreference.addCoref(subCoreference);
+				if(mainCoreference  == null)
+					mainCoreference = subCoreference;
+				else
+					mainCoreference.addCoref(subCoreference);
 			}
-			tokFile.addAnnotation(Coreference.class, mainCoreference);
+			if(mainCoreference != null)
+				tokFile.addAnnotation(Coreference.class, mainCoreference);
 		}
+		
+		
+	/*	for(CoreMap sentence : doc.get(CoreAnnotations.SentencesAnnotation.class) )
+		{
+			Collection<RelationTriple> triples = sentence.get(NaturalLogicAnnotations.RelationTriplesAnnotation.class);
+			for(RelationTriple triple : triples)
+			{
+				Logger.Write(String.valueOf(triple.confidence));
+				Logger.Write(triple.subjectLemmaGloss());
+				Logger.Write(triple.relationLemmaGloss());
+				Logger.Write(triple.objectLemmaGloss());
+			}
+		}*/
+		
 		for(CoreMap s : doc.get(SentencesAnnotation.class))
 		{		
 			List<Mention> mentions = s.get(CorefMentionsAnnotation.class);
@@ -62,26 +85,37 @@ public class ActionCoreferenceCoreNLP extends ActionTokenizerBase {
 				Logger.Write(chain.toString());
 				if(m.isSubject || m.isDirectObject)
 				{
-					JournalistInfo ji = new JournalistInfo();
+					CoreLabel iw = m.dependingVerb.backingLabel();
+					int depVerbPosition = iw.get(IndexAnnotation.class)-1;
+					
 					Entity e = new Entity();
-					e.word = sentence.get(m.startIndex - 1);
+					e.word = sentence.get(m.startIndex);
 					e.offset = m.endIndex - m.startIndex;
+					
+					Word depVerb = sentence.get(depVerbPosition);//.getWordDependantVerb(e.word);
+					EntityMapper<com.NLPFramework.Domain.Annotation> map = sentence.annotations.get(JournalistInfo.class) != null ? sentence.annotations.get(JournalistInfo.class).get(depVerb) : null;
+					if(map == null)
+						 map = new EntityMapper<>();
+					JournalistInfo ji = map.element != null ? (JournalistInfo) map.element : new JournalistInfo();
+					
 					if(m.isDirectObject)
 					{
-						ji.patient = e;
-						ji.actor.role = PropBankArgument.A1;
+						e.role = PropBankArgument.A1;
+						ji.patients.add(e);
 					}
 					else
 					{
-						ji.actor = e;
-						ji.actor.role = PropBankArgument.A0;
+						e.role = PropBankArgument.A0;
+						ji.actors.add(e);
 					}
-					Word depVerb = sentence.getWordDependantVerb(e.word);
-					if(sentence.annotations.get(Event.class).get(depVerb) != null)
+					
+					if(sentence.annotations.get(Event.class) != null && sentence.annotations.get(Event.class).get(depVerb) != null)
 						ji.what = (Event)sentence.annotations.get(Event.class).get(depVerb).element;
-					EntityMapper<JournalistInfo> map = new EntityMapper<>();
+					else
+						continue;
 					map.element = ji;
-					sentence.addAnnotation(JournalistInfo.class, ji.what.word, map);
+					if(sentence.annotations.get(JournalistInfo.class) == null || sentence.annotations.get(JournalistInfo.class).get(depVerb) == null)
+						sentence.addAnnotation(JournalistInfo.class, ji.what.word, map);
 				}
 					
 			}
@@ -93,7 +127,7 @@ public class ActionCoreferenceCoreNLP extends ActionTokenizerBase {
 	private Coreference setCoreference(TokenizedFile tokFile, CorefMention corefMention) 
 	{
 		TokenizedSentence sentence = tokFile.get(corefMention.sentNum - 1);
-		int corefIndex = corefMention.startIndex - 2;
+		int corefIndex = corefMention.startIndex - 1;
 		if(corefIndex < 0)
 			return null;
 		Word word = sentence.get(corefIndex);

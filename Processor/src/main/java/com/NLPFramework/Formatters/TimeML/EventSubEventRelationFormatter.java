@@ -1,7 +1,8 @@
-package com.NLPFramework.Formatters;
+package com.NLPFramework.Formatters.TimeML;
 
 import com.NLPFramework.Domain.TokenizedSentence;
 import com.NLPFramework.Domain.Word;
+import com.NLPFramework.Formatters.IFileFormatter;
 import com.NLPFramework.Helpers.PipesHelper;
 import com.NLPFramework.Helpers.TimeMLHelper;
 import com.NLPFramework.TimeML.Domain.MakeInstance;
@@ -56,17 +57,18 @@ public class EventSubEventRelationFormatter  implements IFileFormatter
 		if(mkInstance.event.word.isVerb == true && mkRelatedInstance.event.word.isVerb == true &&  !mkInstance.event.word.equals(mainVerb) &&  !mkRelatedInstance.event.word.equals(mainVerb))
 			return null;
 		
+		Word subVerb = sentence.getWordDependantVerb( mkRelatedInstance.event.word);
 		
 		sb.append(file.getName());
 		sb.append(PipesHelper.AppendPipes(tl.id));
 		sb.append(PipesHelper.AppendPipes(mkInstance.event.eventClass));
 		sb.append(PipesHelper.AppendPipes(mkInstance.event.word.lemma));
 		sb.append(PipesHelper.AppendPipes(mkInstance.event.word.pos));
-		Word depVerb = file.get( mkInstance.event.word.sentenceNumber).getWordDependantVerb( mkInstance.event.word);
-		if(depVerb != null && !depVerb.tense.equals("-"))
+		
+		if(mainVerb != null && !mainVerb.tense.equals("-"))
 		{
-			sb.append(PipesHelper.AppendPipes(depVerb.tense));
-			sb.append(PipesHelper.AppendPipes(TimeMLHelper.getEventTenseFromWordTense(depVerb.tense) + "_" + TimeMLHelper.getEventAspectFromTense(depVerb.tense)));			
+			sb.append(PipesHelper.AppendPipes(mainVerb.tense));
+			sb.append(PipesHelper.AppendPipes(TimeMLHelper.getEventTenseFromWordTense(mainVerb.tense) + "_" + TimeMLHelper.getEventAspectFromTense(mainVerb.tense)));			
 		}
 		else
 		{
@@ -85,12 +87,13 @@ public class EventSubEventRelationFormatter  implements IFileFormatter
 		sb.append(PipesHelper.AppendPipes(mkRelatedInstance.event.eventClass));
 		sb.append(PipesHelper.AppendPipes(mkRelatedInstance.event.word.lemma));
 		sb.append(PipesHelper.AppendPipes(mkRelatedInstance.event.word.pos));
-		depVerb = null;
-		depVerb = file.get(mkRelatedInstance.event.word.sentenceNumber).getWordDependantVerb( mkRelatedInstance.event.word);
-		if(depVerb != null && !depVerb.tense.equals("-"))
+		
+		
+		
+		if(subVerb != null && !subVerb.tense.equals("-"))
 		{
-			sb.append(PipesHelper.AppendPipes(depVerb.tense));
-			sb.append(PipesHelper.AppendPipes(TimeMLHelper.getEventTenseFromWordTense(depVerb.tense) + "_" + TimeMLHelper.getEventAspectFromTense(depVerb.tense)));
+			sb.append(PipesHelper.AppendPipes(subVerb.tense));
+			sb.append(PipesHelper.AppendPipes(TimeMLHelper.getEventTenseFromWordTense(subVerb.tense) + "_" + TimeMLHelper.getEventAspectFromTense(subVerb.tense)));
 				
 		}
 		else
@@ -106,12 +109,14 @@ public class EventSubEventRelationFormatter  implements IFileFormatter
 			sb.append(PipesHelper.AppendPipes("-"));
 		
 		
-		Timex3 relatedTime = TimeMLHelper.getTimexByDependantVerb(file, mkInstance.event.word.depverb);
+		Timex3 relatedTime = TimeMLHelper.getTimexByDependantVerb(file, mainVerb);
 		if(relatedTime == null)
 			relatedTime = file.getDCT();
-		Timex3 relatedMkInstanceTime = TimeMLHelper.getTimexByDependantVerb(file, mkRelatedInstance.event.word.depverb);
+		
+		Timex3 relatedMkInstanceTime = TimeMLHelper.getTimexByDependantVerb(file, subVerb);
 		if(relatedMkInstanceTime == null)
 			relatedMkInstanceTime = file.getDCT();
+		
 		if(relatedTime != null && relatedMkInstanceTime != null)
 		{
 			if(relatedTime.id != relatedMkInstanceTime.id)

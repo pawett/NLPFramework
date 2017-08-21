@@ -6,6 +6,8 @@ import com.NLPFramework.Domain.Annotation;
 import com.NLPFramework.Domain.SemanticRole;
 import com.NLPFramework.Domain.TokenizedSentence;
 import com.NLPFramework.Domain.Word;
+import com.NLPFramework.Formatters.FeaturesFormatter;
+import com.NLPFramework.Formatters.ISentenceFormatter;
 import com.NLPFramework.Helpers.PipesHelper;
 import com.NLPFramework.TimeML.Domain.EntityMapper;
 import com.NLPFramework.TimeML.Domain.Event;
@@ -81,32 +83,7 @@ public class EventClassikAnnotatedFormatter extends FeaturesFormatter implements
 		 return sb.toString();
 	}
 
-	private void getCurrentWordToString(Word w, StringBuilder currentWordSb) 
-	{
-		currentWordSb.append(w.word);
-		currentWordSb.append(PipesHelper.AppendPipes(w.pos));
-		currentWordSb.append(PipesHelper.AppendPipes(w.lemma));
-		SemanticRole sr = w.getSemanticRole();
-		 if(sr != null && sr.argument != null){
-			 
-			 currentWordSb.append(PipesHelper.AppendPipes(w.getSemanticRole().argument.toString()));
-		 }else
-			 currentWordSb.append(PipesHelper.AppendPipes("-"));
-		 if(w.depverb != null)
-		 {
-			 currentWordSb.append(PipesHelper.AppendPipes(w.depverb.word));
-			 currentWordSb.append(PipesHelper.AppendPipes(w.depverb.tense));
-			 currentWordSb.append(PipesHelper.AppendPipes(w.depverb.polarity));
-		 }else{
-			 currentWordSb.append(PipesHelper.AppendPipes("-"));
-			 currentWordSb.append(PipesHelper.AppendPipes("-"));
-			 currentWordSb.append(PipesHelper.AppendPipes("-"));
-		 }
-		 currentWordSb.append(PipesHelper.AppendPipes(w.mainphraseIOB));
-		 currentWordSb.append(PipesHelper.AppendPipes(w.preposition));
-		 currentWordSb.append(PipesHelper.AppendPipes(w.wn));
-	}
-
+	
 	@Override
 	public String getExtension() {
 		// TODO Auto-generated method stub

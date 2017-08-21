@@ -21,48 +21,13 @@ import com.NLPFramework.Formatters.TokenFileFormatter;
  * @author Hector Llorens
  * @since 2011
  */
-public class CRF implements IMachineLearningMethod
+public class CRF extends BashProcessBase implements IMachineLearningMethod
 {
     // path is not necessary but is used to capture temporal files (if there are), or default templates
     public static String program_path = "/home/pawett/NLPFramework/Processor/program-data/CRF/";
     		//FileUtils.getApplicationPath() + "program-data/CRF++/";
     private final String modelFileExtension = ".CRFmodel";
    
-    
-    /**
-     * Runs CRF++ over a features file given a model
-     * and saves the output as input-annotatedWith-CRFmodel-x file
-     *
-     * The model must be in the same path or in program-data/CRF++
-     *
-     * Format | | | | pipes
-     *
-     * @param filename
-     * @param template
-     * @return Output filename
-     */
-    public String test(String featuresfile, String modelFile) {
-        int folderposition = modelFile.lastIndexOf('/');
-        String outputfile = featuresfile + "-annotatedWith-CRFmodel-" + modelFile.substring(folderposition + 1, modelFile.lastIndexOf('.'));
-        try 
-        {
-        	modelFile = getTemplate(modelFile);
-            
-            MachineLearningHelper.CreateInputFormat(program_path, featuresfile);
-            ExecuteCRF(outputfile);
-            MachineLearningHelper.CreateOutput(program_path, outputfile);
-            MachineLearningHelper.ClearTmp(program_path);
-
-
-        } catch (Exception e) 
-        {
-        	Logger.WriteError("Errors found (CRF++):", e);
-            
-            return null;
-        }
-        return outputfile;
-    }
-    
   
     public String Train(String featuresfile, String templatefile)
     {
@@ -92,28 +57,10 @@ public class CRF implements IMachineLearningMethod
 		BufferedReader stdInput;
 		MachineLearningHelper.CreateInputFormat(program_path, featuresfile);
 
-
-		String[] command2 = {"crf_learn", "-c", "1.0", "-p", "4", templatefile, program_path + "temp.tmp", outputfile};
+		String[] command = {"crf_learn", "-c", "1.0", "-p", "4", templatefile, program_path + "temp.tmp", outputfile};
 		//System.err.println("\ncrf_learn -c 1.0 -p 2 " + templatefile + " " + featuresfile+" "+outputfile+"\n");
-		p = Runtime.getRuntime().exec(command2);
 		
-		stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-		try {
-		    String line;
-		    while ((line = stdInput.readLine()) != null) {
-		        System.err.println(line);
-		    }
-		} finally {
-		    if (stdInput != null) {
-		        stdInput.close();
-		    }
-		    if(p!=null){
-		        p.getInputStream().close();
-		        p.getOutputStream().close();
-		        p.getErrorStream().close();
-		        p.destroy();
-		    }
-		}
+		runOnlyLogging(command);
 	}
 
 
@@ -189,12 +136,11 @@ public class CRF implements IMachineLearningMethod
         try 
         {
         	modelFile = getTemplate(modelFile);
-
+        	
         	MachineLearningHelper.CreateInputFormat(program_path, featuresfilePath);
             ExecuteCRF(modelFile);
             MachineLearningHelper.CreateOutput(program_path, outputfile);
             MachineLearningHelper.ClearTmp(program_path);
-
             UpdateTokenizedFile(formatter, toFormatter, outputfile);
 
         } catch (Exception e) 
@@ -221,7 +167,6 @@ public class CRF implements IMachineLearningMethod
             ExecuteCRF(modelFile);
             MachineLearningHelper.CreateOutput(program_path, outputfile);
             MachineLearningHelper.ClearTmp(program_path);
-
             UpdateTokenizedFile(formatter, toFormatter, outputfile);
 
         } catch (Exception e) 
@@ -319,31 +264,9 @@ public class CRF implements IMachineLearningMethod
 	{
 		Process p;
 		BufferedReader stdInput;
-		String[] command2 = {"crf_test", "-m", modelfile, program_path + "temp.tmp", "-o", program_path + "temp2.tmp"};
-		p = Runtime.getRuntime().exec(command2);
+		String[] command = {"crf_test", "-m", modelfile, program_path + "temp.tmp", "-o", program_path + "temp2.tmp"};
 		
-		stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-		try {
-			
-		    String line;
-		    while ((line = stdInput.readLine()) != null) {
-		        System.err.println(line);
-		    }
-		} finally {
-		    if (stdInput != null) {
-		        stdInput.close();
-		    }
-		    if(p!=null){
-		        p.getInputStream().close();
-		        p.getOutputStream().close();
-		        p.getErrorStream().close();
-		        p.destroy();
-		    }
-		}
+		runOnlyLogging(command);
 	}
-
-
-	
-
 
 }

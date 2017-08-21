@@ -88,7 +88,9 @@ public class FileConverter {
            ArrayList<TokenizedFile> filesAnnotated = new ArrayList<>();
            files.parallelStream().forEach((tmlFile) -> {
         	   try {
-        		   filesAnnotated.add(processFile(approach, Configuration.getLanguage(), featuresdir, tmlFile));
+        		   TokenizedFile file = processFile(approach, Configuration.getLanguage(), featuresdir, tmlFile);
+        		   if(file != null)
+        			   filesAnnotated.add(file);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -127,7 +129,8 @@ public class FileConverter {
 		NLPFile nlpfile = new PlainFile(tmlfile.getAbsolutePath());
 		nlpfile.setLanguage(lang);
 		if (!(FileUtils.getNLPFormat(nlpfile.getFile())).equalsIgnoreCase("XML")) {
-		    throw new Exception("TimeML (.tml) XML file is required as input. Found: " + nlpfile.getFile().getCanonicalPath());
+		   // throw new Exception("TimeML (.tml) XML file is required as input. Found: " + nlpfile.getFile().getCanonicalPath());
+			return  null;
 		}
 
 		XMLFile xmlfile = new XMLFile(nlpfile.getFile().getAbsolutePath(),null);

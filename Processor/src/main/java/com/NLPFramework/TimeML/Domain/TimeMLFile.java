@@ -52,11 +52,11 @@ public class TimeMLFile extends TokenizedFile {
 	}
 
 	public Timex3 getDCT() {
-		if (DCT == null) {
+		/*if (DCT == null) {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
 			String dctFile = sdf.format(new Date());
 			setDCTFromDate(dctFile);
-		}
+		}*/
 		return DCT;
 	}
 

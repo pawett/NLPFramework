@@ -10,13 +10,18 @@ import javax.ws.rs.core.Response;
 import com.NLPFramework.Crosscutting.Logger;
 import com.NLPFramework.Domain.Annotation;
 import com.NLPFramework.Domain.Coreference;
+import com.NLPFramework.Domain.Entity;
+import com.NLPFramework.Domain.JournalistInfo;
+import com.NLPFramework.Domain.NER;
 import com.NLPFramework.Domain.PropBankArgument;
 import com.NLPFramework.Domain.TokenizedSentence;
 import com.NLPFramework.Domain.Word;
+import com.NLPFramework.Helpers.FileHelper;
 import com.NLPFramework.Helpers.TimeMLHelper;
 import com.NLPFramework.NewsReader.Domain.EventMention;
 import com.NLPFramework.RESTClient.ClientBase;
 import com.NLPFramework.RESTClient.DBpediaResource;
+import com.NLPFramework.RESTClient.Resource;
 import com.NLPFramework.TimeML.Domain.EntityMapper;
 import com.NLPFramework.TimeML.Domain.Event;
 import com.NLPFramework.TimeML.Domain.MakeInstance;
@@ -25,6 +30,7 @@ import com.NLPFramework.TimeML.Domain.TimeLinkRelationType;
 import com.NLPFramework.TimeML.Domain.TimeMLFile;
 import com.NLPFramework.TimeML.Domain.TimeType;
 import com.NLPFramework.TimeML.Domain.Timex3;
+import com.NLPFramework.externalTools.StanfordSynt;
 
 
 
@@ -61,68 +67,9 @@ public class TimeLineProcessor
 					
 					processEvent(event);
 					
-					
-				/*	processEventMention(eventMention, sentence);
-					if(eventMention.modality != null || !eventMention.modality.isEmpty())//Rule Not modal verbs
-						continue;
-					if(eventMention.factuality.equals(Factuality.COUNTERFACTUAL))
-						continue;
-					if(eventMention.factuality.equals(Factuality.NONFACTUAL) && eventMention.certainty.equals(Certainty.UNCERTAIN))
-						continue;
-					//TODO:Events that describe mental states and mental acts that involve mental or cognitive processes such as plans, love, think, know, remember, perceive, prefer, want, forget, understand, decide, decision
-					
-					if(mk.polarity.equals(Polarity.NEG)) //Not negated events
-						continue;
-					if(mk.event.word.pos.startsWith("J"))//Not adjectivals events
-						continue;*/
 				}
 			}
-			
-			/*int verbPos = 0;
-			for(Word v : sentence.verbs)
-			{
-				sb.append("Action: " + v.word);
-				sb.append(System.lineSeparator());
-				String subject = "";
-				String cd= "";
-				String when = "";
-				for(Word w : sentence)
-				{
-					if(events.contains(w))
-					{
-						MakeInstance event = (MakeInstance) events.get(w).element;
-						
-						if(event.modality.matches(Constants.matchModal))
-							continue;
-						
-					}
-					if(w.semanticRoles != null && w.semanticRoles.get(verbPos) != null && w.semanticRoles.get(verbPos).argument != null)
-					{	
-						if(w.semanticRoles.get(verbPos).argument.equals(PropBankArgument.A0) && w.ner.matches("PER|PERSON|ORG|ORGANIZATION"))
-						   subject = subject + " " + w.word;
-						if(w.semanticRoles.get(verbPos).argument.equals(PropBankArgument.A1) && w.ner.matches("PER|PERSON|ORG|ORGANIZATION"))
-							cd = cd + " " + w.word;
-						//sb.append(this.toString(w, v, w.semanticRoles.get(verbPos)));
-						//sb.append(System.lineSeparator());
-					}
-					Timex3 timex = TimeMLHelper.getTimexFromFile(file, w);
-					if(timex != null)
-					{
-						if(sentence.getWordDependantVerb(w).equals(v))
-							when = when + " " + timex.value;
-					}
-				}
-				sb.append("who: " + subject);
-				sb.append(System.lineSeparator());
-				sb.append("to whom: " + cd);
-				sb.append(System.lineSeparator());
-				sb.append("when: " + when);
-				verbPos++;
-				sb.append(System.lineSeparator());
-			}*/
-		}
-		
-		
+		}	
 	}
 	
 	private void processEvent(Event event)
@@ -134,8 +81,10 @@ public class TimeLineProcessor
 		String cd= "";
 		String when = "";
 		
-		Word eventDepVerb = event.word.isVerb ? event.word : sentence.getWordDependantVerb(event.word);
-		
+		Word eventDepVerb = event.word.isVerb ? event.word : null;//only verbs sentence.getWordDependantVerb(event.word);
+		if(eventDepVerb == null)
+			return;
+		Logger.Write("DepVerb: " + (eventDepVerb != null ? eventDepVerb.word : "None"));
 		int verbPos = sentence.verbs.indexOf(eventDepVerb);
 		
 		if(verbPos < 0)
@@ -144,20 +93,169 @@ public class TimeLineProcessor
 			return;
 		}
 		
+		TokenizedSentence A0 = new TokenizedSentence();
+		TokenizedSentence A1 = new TokenizedSentence();
+		if(sentence.semanticRoles.get(eventDepVerb) != null && sentence.semanticRoles.get(eventDepVerb).containsKey(PropBankArgument.A0))
+			A0 = sentence.semanticRoles.get(eventDepVerb).get(PropBankArgument.A0).words;
+		if(sentence.semanticRoles.get(eventDepVerb) != null && sentence.semanticRoles.get(eventDepVerb).containsKey(PropBankArgument.A1))
+			A1 = sentence.semanticRoles.get(eventDepVerb).get(PropBankArgument.A1).words;
+		
+		
+		Logger.Write("A0 BEFORE::" + A0);
+		for(Word w : A0)
+		{
+			if(!TimeMLHelper.areWordsInSameClause(file, w, eventDepVerb))
+				A0.remove(w);
+		}
+		
+		Logger.Write("A0::" + A0);
+		
+		
+		
+		Logger.Write("A1 BEFORE::" + A1);
+		for(Word w : A1)
+		{
+			if(!TimeMLHelper.areWordsInSameClause(file, w, eventDepVerb))
+				A1.remove(w);
+		}
+		
+		Logger.Write("A1::" + A1);
+		
+	
+		
+		for(Word w : A0)
+		{
+			if(getMainReference(w) != null)
+			{
+				Word coreferenceWord = getMainReference(w).word;
+				//A0 = new TokenizedSentence();
+				//A0.add(coreferenceWord);
+				
+				/*for(int i = 1 ; i< getMainReference(w).offset && coreferenceWord != null; i++)
+				{
+					coreferenceWord = coreferenceWord.next;
+					A0.add(coreferenceWord);
+				}*/
+				Logger.Write("Coreference for " + w.word + " :: " + getMainReference(w).toString());
+			}
+		}
+		
+		for(Word w : A1)
+		{
+			if(getMainReference(w) != null)
+			{
+				Word coreferenceWord = getMainReference(w).word;
+				A1 = new TokenizedSentence();
+				A1.add(coreferenceWord);
+				
+				for(int i = 1 ; i< getMainReference(w).offset && coreferenceWord != null; i++)
+				{
+					coreferenceWord = coreferenceWord.next;
+					A1.add(coreferenceWord);
+				}
+				Logger.Write("Coreference for " + w.word + " :: " + getMainReference(w).toString());
+			}
+		}
+/*
+		for(Word w : sentence)
+		{		
+			if(!TimeMLHelper.areWordsInSameClause(file, w, eventDepVerb))
+				continue;
+			if( w.semanticRoles != null && w.semanticRoles.get(verbPos) != null && w.semanticRoles.get(verbPos).argument != null
+					)//&& w.ner.matches("PER|PERSON|ORG|ORGANIZATION"))
+			{	
+
+				if(w.semanticRoles.get(verbPos).argument.equals(PropBankArgument.A0))
+				{
+					//if(getMainReference(w) != null)
+					A0.add(w);
+				}
+				if(w.semanticRoles.get(verbPos).argument.equals(PropBankArgument.A1))
+					A1.add(w);
+			}
+		}
+		
+		/*for(Word w : A0)
+		{
+			if(getMainReference(w) != null)
+			{
+				Word coreferenceWord = getMainReference(w).word;
+				A0 = new TokenizedSentence();
+				A0.add(coreferenceWord);
+				
+				for(int i = 1 ; i< getMainReference(w).offset && coreferenceWord != null; i++)
+				{
+					coreferenceWord = coreferenceWord.next;
+					A0.add(coreferenceWord);
+				}
+				Logger.Write("Coreference for " + w.word + " :: " + getMainReference(w).toString());
+			}
+		}
+		
+		for(Word w : A1)
+		{
+			if(getMainReference(w) != null)
+			{
+				Word coreferenceWord = getMainReference(w).word;
+				A1 = new TokenizedSentence();
+				A1.add(coreferenceWord);
+				
+				for(int i = 1 ; i< getMainReference(w).offset && coreferenceWord != null; i++)
+				{
+					coreferenceWord = coreferenceWord.next;
+					A1.add(coreferenceWord);
+				}
+				Logger.Write("Coreference for " + w.word + " :: " + getMainReference(w).toString());
+			}
+		}*/
+	
+		Logger.Write("A0::" + A0);
+		Logger.Write("A1::" + A1);
+		
 		TimeMLHelper.getWordSentence(sentence, event.word);
 		String sentenceSRL = "";
+	/*	ClientBase base = new ClientBase();
+		Response response = base.get(file.getOriginalText());
+		//String returnString = response.readEntity(String.class);
+		DBpediaResource output = response.readEntity(DBpediaResource.class);
+		
+		Logger.Write("Sentence: " + sentence.originalText);
+		for(Resource r : output.getResources())
+		{
+			//Word w =sentence.get(Integer.parseInt(r.getOffset()));
+			Logger.Write("NER detected: "+ r.getURI() + " Word: " +r.getOffset() + " " + r.getTypes());
+		}
+		
+		*/
+		if(sentence.annotations.get(JournalistInfo.class) != null)
+		{
+			EntityMapper<Annotation> jiMap = sentence.annotations.get(JournalistInfo.class).get(eventDepVerb);
+			if(jiMap != null)
+			{
+				JournalistInfo ji = (JournalistInfo) jiMap.element;
+				Logger.Write("Event: " + ji.what.word.word);
+				if(ji.actors.size() > 0)
+				{
+					Logger.Write("Authors:");
+					for(Entity e : ji.actors)
+						Logger.Write(e.toString());
+				}
+				
+				if(ji.patients.size() > 0)
+				{
+					Logger.Write("Patients:");
+					for(Entity e : ji.patients)
+						Logger.Write(e.toString());
+				}
+				
+			}
+		}
+		
 		for(Word w : sentence)
 		{
 			if(w.pos.equals("WDT"))
 				break;
-			/*if(events.contains(w))
-			{
-				MakeInstance event = (MakeInstance) events.get(w).element;
-				
-				if(event.modality.matches(Constants.matchModal))
-					continue;
-				
-			}*/
+			
 			
 			if( w.semanticRoles != null && w.semanticRoles.get(verbPos) != null && w.semanticRoles.get(verbPos).argument != null)
 			{	
@@ -165,12 +263,12 @@ public class TimeLineProcessor
 				String coref = w.word;
 				if(getMainReference(w) != null)
 					coref = getMainReference(w).printCurrent();
-				if(!w.ner.matches("O"))//PER|PERSON|ORG|ORGANIZATION
+				if(!w.ner.matches("PER|PERSON|ORG|ORGANIZATION"))//PER|PERSON|ORG|ORGANIZATION
 				{
 					if(w.semanticRoles.get(verbPos).argument.equals(PropBankArgument.A0))
-						subject =  subject + " " + w.word ;//.ner.matches("PER|PERSON|ORG|ORGANIZATION") ? subject + " " + getMainReference(w).word : subject;
+						subject =   subject + " " + coref;
 					if(w.semanticRoles.get(verbPos).argument.equals(PropBankArgument.A1))
-						cd = cd + " "+  w.word;// getMainReference(w).ner.matches("PER|PERSON|ORG|ORGANIZATION") ? cd + " " + getMainReference(w).word : cd;
+						cd = cd + " "+ coref;
 					
 				}else
 				{
@@ -238,14 +336,26 @@ public class TimeLineProcessor
 		}
 		
 		if(when.isEmpty())
-			when = when + " " + file.getDCT().value;
+			when = when + " dct: " + file.getDCT().value;
 		
-		if(!subject.isEmpty()){
-		ClientBase base = new ClientBase();
-		Response response = base.get(subject);
-		DBpediaResource output = response.readEntity(DBpediaResource.class);
-		subject = output.getResources() != null && !output.getResources().isEmpty() ? output.getResources().get(0).getSupport() : subject;
-		}
+		/*if(!subject.isEmpty())
+		{
+			ClientBase base = new ClientBase();
+			Response response = base.get(sentence.toString());
+			String resp = response.readEntity(String.class);
+			DBpediaResource output = response.readEntity(DBpediaResource.class);
+			if(output.getResources() != null)
+			{
+				Logger.WriteDebug("Resources for " + sentence.toString());
+ 				for(Resource r : output.getResources())
+				{
+					
+					Logger.WriteDebug(r.getSurfaceForm());
+				}
+			}
+			subject = output.getResources() != null && !output.getResources().isEmpty() ? output.getResources().get(0).getSupport() : subject;
+			
+		}*/
 		
 		Logger.Write("Sentence: " + sentenceSRL);
 		Logger.Write("who: " + subject);
@@ -259,6 +369,8 @@ public class TimeLineProcessor
 	{
 		Coreference returnWord = null;
 		LinkedList<Annotation> corefs = file.annotations.get(Coreference.class);
+		if(corefs == null)
+			return null;
 		for(Annotation annotation : corefs)
 		{
 			Coreference mainCoref = (Coreference) annotation;

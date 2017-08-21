@@ -54,11 +54,8 @@ public class SennaFormatter  implements IWordFormatter {
 			word.isVerb = true;
 		for(int i = 5; i <= valuesArray.length -2; i++)
 			word.setRoleFromText(valuesArray[i].trim());
-		/*word.word = valuesArray[6];
-		word.word = valuesArray[7];
-		word.word = valuesArray[8];
-		*/
-		word.extra1 = valuesArray[valuesArray.length -1];
+		
+		word.syntacticTree = valuesArray[valuesArray.length -1];
 		return true;
 //ID FORM LEMMA TAG SHORT_TAG MSD NEC SENSE SYNTAX DEPHEAD DEPREL COREF SRL		
 	}

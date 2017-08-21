@@ -169,8 +169,8 @@ public class FeatureExtractorEnglish implements IFeatureExtractorStrategy {
 			{
 				sentenceInFile.toStringSynt();
 
-				String[] values = token.extra1.split("\\(");
-				int openBrackets = token.extra1.length() - token.extra1.replaceAll("\\(", "").length();
+				String[] values = token.syntacticTree.split("\\(");
+				int openBrackets = token.syntacticTree.length() - token.syntacticTree.replaceAll("\\(", "").length();
 				if(openBrackets > 0)
 				{
 					//Logger.Write("Setting subsentences");
@@ -203,8 +203,8 @@ public class FeatureExtractorEnglish implements IFeatureExtractorStrategy {
 					
 				}
 				
-				values = token.extra1.split("\\)");
-				int closeBrackets = token.extra1.length() - token.extra1.replaceAll("\\)", "").length();
+				values = token.syntacticTree.split("\\)");
+				int closeBrackets = token.syntacticTree.length() - token.syntacticTree.replaceAll("\\)", "").length();
 				for(int i = 0; i < closeBrackets ; i++)
 				{
 					// Logger.WriteDebug("Closing brackets");

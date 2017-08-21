@@ -7,9 +7,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.glassfish.jersey.client.ClientConfig;
 
 public class ClientBase {
@@ -20,7 +18,9 @@ public class ClientBase {
 	{
 		ClientConfig clientConfig = new ClientConfig();
 		clientConfig.register(JacksonJsonProvider.class);
+		
 		Client client = ClientBuilder.newClient(clientConfig);
+		
 	
 		webResource = client.target(baseSource);
 
@@ -30,9 +30,19 @@ public class ClientBase {
 	{
 		
 		try{
+			String textEncoded =  URLEncoder.encode(text, "UTF-8");
 			
-			webResource = webResource.queryParam("text", URLEncoder.encode(text, "UTF-8"));
-			Response response = webResource.request(MediaType.APPLICATION_JSON_TYPE)
+			webResource = webResource.queryParam("text", text);
+			webResource = webResource.queryParam("confidence", URLEncoder.encode("0.5", "UTF-8"));
+			webResource = webResource.queryParam("support", URLEncoder.encode("0", "UTF-8"));
+			webResource = webResource.queryParam("spotter", "Default");
+			webResource = webResource.queryParam("disambiguator", "Default");
+			
+			//webResource = webResource.queryParam("policy", "blacklist");
+			//webResource = webResource.queryParam("types", URLEncoder.encode("Schema:Event,Schema:Language,Schema:Place", "UTF-8"));
+			webResource = webResource.queryParam("sparql", "");
+			
+			Response response = webResource.request(MediaType.APPLICATION_JSON).header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.98 Safari/537.36")
 					.get();
 
 			if (response.getStatus() != 200) {

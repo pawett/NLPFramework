@@ -1,8 +1,9 @@
-package com.NLPFramework.Formatters;
+package com.NLPFramework.Formatters.TimeML;
 
 import com.NLPFramework.Crosscutting.Logger;
 import com.NLPFramework.Domain.TokenizedSentence;
 import com.NLPFramework.Domain.Word;
+import com.NLPFramework.Formatters.IFileFormatter;
 import com.NLPFramework.Helpers.PipesHelper;
 import com.NLPFramework.Helpers.TimeMLHelper;
 import com.NLPFramework.TimeML.Domain.MakeInstance;
@@ -52,23 +53,24 @@ public class EventDCTRelationFormatter  implements IFileFormatter
 		if(mkInstance == null || timex == null || !(timex.id.equals("0") || timex.id.equals("t0")))
 			return null;
 		
-		TokenizedSentence s = file.get(mkInstance.event.word.sentenceNumber);
+		TokenizedSentence sentence = file.get(mkInstance.event.word.sentenceNumber);
 		
 		sb.append(file.getName());
 		sb.append(PipesHelper.AppendPipes(tl.id));
 		sb.append(PipesHelper.AppendPipes(mkInstance.event.eventClass));
 		sb.append(PipesHelper.AppendPipes(mkInstance.event.word.lemma));
 		sb.append(PipesHelper.AppendPipes(mkInstance.event.word.pos));
+		
 		Word depVerb = null;
 		Timex3 relatedTime = null;
 		if(mkInstance.event.word != null)
-			depVerb = s.getWordDependantVerb(mkInstance.event.word);
+			depVerb = sentence.getWordDependantVerb(mkInstance.event.word);
 		if(depVerb != null)// && mkInstance.event.word.depverb != null)
 		{
 			if(!mkInstance.event.word.isVerb)
 			{	//sb.append(PipesHelper.AppendPipes(depVerb.tense));
 				sb.append(PipesHelper.AppendPipes(TimeMLHelper.getEventTenseFromWordTense(depVerb.tense)));
-				sb.append(PipesHelper.AppendPipes(TimeMLHelper.getEventAspectFromTense(mkInstance.event.word.depverb.tense)));
+				sb.append(PipesHelper.AppendPipes(TimeMLHelper.getEventAspectFromTense(depVerb.tense)));
 				sb.append(PipesHelper.AppendPipes(mkInstance.modality != null ? mkInstance.modality.trim().toLowerCase() : null));
 				Word verbModifier = TimeMLHelper.getVerbModifier(file, depVerb);
 				if(verbModifier != null)
@@ -108,8 +110,8 @@ public class EventDCTRelationFormatter  implements IFileFormatter
 		//Logger.WriteDebug(a);
 		
 				
-		if(mkInstance.event.word != null && s.getWordPP(mkInstance.event.word) != null)
-			sb.append(PipesHelper.AppendPipes(s.getWordPP(mkInstance.event.word)));
+		if(mkInstance.event.word != null && sentence.getWordPP(mkInstance.event.word) != null)
+			sb.append(PipesHelper.AppendPipes(sentence.getWordPP(mkInstance.event.word)));
 		else
 			sb.append(PipesHelper.AppendPipes("-"));
 		if(relatedTime != null)
@@ -153,8 +155,8 @@ public class EventDCTRelationFormatter  implements IFileFormatter
 			sb.append(PipesHelper.AppendPipes("-"));
 		}
 		
-		if(relatedTime != null && relatedTime.word != null && s.getWordPP(relatedTime.word) != null)
-			sb.append(PipesHelper.AppendPipes(s.getWordPP(relatedTime.word)));
+		if(relatedTime != null && relatedTime.word != null && sentence.getWordPP(relatedTime.word) != null)
+			sb.append(PipesHelper.AppendPipes(sentence.getWordPP(relatedTime.word)));
 		else
 			sb.append(PipesHelper.AppendPipes("-"));
 		String syntRelation = "-";

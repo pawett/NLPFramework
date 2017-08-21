@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import com.NLPFramework.Domain.TokenizedFile;
 import com.NLPFramework.externalTools.StanfordSynt;
 
-public abstract class ActionSentenceSplitterBase implements INLPAction 
+public abstract class ActionSentenceSplitterBase implements INLPActionFile 
 {
 
 	protected String filePath = null;
@@ -20,7 +20,7 @@ public abstract class ActionSentenceSplitterBase implements INLPAction
 	
 
 	@Override
-	public ArrayList<Class<? extends INLPAction>> getDependencies()
+	public ArrayList<Class<? extends INLPActionFile>> getDependencies()
 	{
 		return null;
 	}

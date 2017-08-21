@@ -65,7 +65,7 @@ public class FileHelper {
 		text = text.replaceAll("-RCB-", ")");
 		text = text.replaceAll("-LRB-", "(");
 		text = text.replaceAll("-RRB-", ")");
-		//text = text.replaceAll("-", "-");
+
 		return text;
 		//.replace("''", "\"").replace("``","\"").replace("-", " - ");
 	}
@@ -110,7 +110,7 @@ public class FileHelper {
 	{
 		  FileOutputStream fos = null;
           ObjectOutputStream oos = null;
-          String binaryPath = path + "features.obj";
+          String binaryPath = path + File.separator + "features.obj";
           try{
         	  fos = new FileOutputStream(binaryPath);
         	  oos = new ObjectOutputStream(fos);

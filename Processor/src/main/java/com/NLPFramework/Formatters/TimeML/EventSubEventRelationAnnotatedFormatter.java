@@ -1,7 +1,8 @@
-package com.NLPFramework.Formatters;
+package com.NLPFramework.Formatters.TimeML;
 
 import java.util.LinkedList;
 
+import com.NLPFramework.Formatters.IFileFormatter;
 import com.NLPFramework.Helpers.PipesHelper;
 import com.NLPFramework.Helpers.TimeMLHelper;
 import com.NLPFramework.TimeML.Domain.MakeInstance;
@@ -10,7 +11,7 @@ import com.NLPFramework.TimeML.Domain.TimeLinkRelationType;
 import com.NLPFramework.TimeML.Domain.TimeMLFile;
 import com.NLPFramework.TimeML.Domain.Timex3;
 
-public class EventEventRelationAnnotatedFormatter extends EventEventRelationFormatter implements IFileFormatter 
+public class EventSubEventRelationAnnotatedFormatter extends EventSubEventRelationFormatter implements IFileFormatter 
 {
 	
 	public String toString(TimeMLFile file)

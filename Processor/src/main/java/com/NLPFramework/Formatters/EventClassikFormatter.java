@@ -3,6 +3,8 @@ package com.NLPFramework.Formatters;
 import com.NLPFramework.Domain.Annotation;
 import com.NLPFramework.Domain.TokenizedSentence;
 import com.NLPFramework.Domain.Word;
+import com.NLPFramework.Formatters.FeaturesFormatter;
+import com.NLPFramework.Formatters.ISentenceFormatter;
 import com.NLPFramework.Helpers.PipesHelper;
 import com.NLPFramework.TimeML.Domain.EntityMapper;
 import com.NLPFramework.TimeML.Domain.Event;

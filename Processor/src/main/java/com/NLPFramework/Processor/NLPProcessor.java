@@ -11,25 +11,25 @@ import org.joda.time.DateTime;
 
 import com.NLPFramework.Crosscutting.Logger;
 import com.NLPFramework.Domain.Annotation;
+import com.NLPFramework.Domain.SemanticRole;
 import com.NLPFramework.Domain.TokenizedFile;
 import com.NLPFramework.Domain.TokenizedSentence;
 import com.NLPFramework.Domain.Word;
-import com.NLPFramework.Formatters.EventClassikAnnotatedFormatter;
-import com.NLPFramework.Formatters.EventClassikFormatter;
-import com.NLPFramework.Formatters.EventDCTRelationAnnotatedFormatter;
-import com.NLPFramework.Formatters.EventDCTRelationFormatter;
-import com.NLPFramework.Formatters.EventEventRelationAnnotatedFormatter;
-import com.NLPFramework.Formatters.EventEventRelationFormatter;
-import com.NLPFramework.Formatters.EventSubEventRelationAnnotatedFormatter;
-import com.NLPFramework.Formatters.EventSubEventRelationFormatter;
-import com.NLPFramework.Formatters.EventTimexRelationAnnotatedFormatter;
-import com.NLPFramework.Formatters.EventTimexRelationFormatter;
-import com.NLPFramework.Formatters.FeaturesEventAnnotatedFormatter;
 import com.NLPFramework.Formatters.FeaturesFormatter;
 import com.NLPFramework.Formatters.ITokenizer;
 import com.NLPFramework.Formatters.SennaFormatter;
-import com.NLPFramework.Formatters.TempEvalClassikFeaturesAnnotatedNormalizationNormalizedFormatter;
 import com.NLPFramework.Formatters.TokenFileFormatter;
+import com.NLPFramework.Formatters.TimeML.EventClassikAnnotatedFormatter;
+import com.NLPFramework.Formatters.TimeML.EventClassikFormatter;
+import com.NLPFramework.Formatters.TimeML.EventDCTRelationAnnotatedFormatter;
+import com.NLPFramework.Formatters.TimeML.EventDCTRelationFormatter;
+import com.NLPFramework.Formatters.TimeML.EventEventRelationAnnotatedFormatter;
+import com.NLPFramework.Formatters.TimeML.EventEventRelationFormatter;
+import com.NLPFramework.Formatters.TimeML.EventSubEventRelationAnnotatedFormatter;
+import com.NLPFramework.Formatters.TimeML.EventSubEventRelationFormatter;
+import com.NLPFramework.Formatters.TimeML.EventTimexRelationAnnotatedFormatter;
+import com.NLPFramework.Formatters.TimeML.EventTimexRelationFormatter;
+import com.NLPFramework.Formatters.TimeML.FeaturesEventAnnotatedFormatter;
 import com.NLPFramework.Helpers.TimeMLHelper;
 import com.NLPFramework.TimeML.Domain.EntityMapper;
 import com.NLPFramework.TimeML.Domain.Event;
@@ -72,15 +72,15 @@ public class NLPProcessor
 		file = new TokenizedFile(Configuration.getLanguage(), fileName);
 	}
 	
-	public TokenizedFile execute(ArrayList<INLPAction> actions)
+	public TokenizedFile execute(ArrayList<INLPActionFile> actions)
 	{
 		
-		ArrayList<Class<? extends INLPAction>> dependencies = new ArrayList<>();
-		for(INLPAction action : actions)
+		ArrayList<Class<? extends INLPActionFile>> dependencies = new ArrayList<>();
+		for(INLPActionFile action : actions)
 		{
 			if(action.getDependencies() == null)
 				continue;
-			for(Class<? extends INLPAction> depaction : action.getDependencies())
+			for(Class<? extends INLPActionFile> depaction : action.getDependencies())
 			{
 				if(!dependencies.contains(depaction))
 					dependencies.add(depaction);
@@ -88,7 +88,7 @@ public class NLPProcessor
 			
 		}
 		
-		for(Class<? extends INLPAction> actionToExecute : dependencies)
+		for(Class<? extends INLPActionFile> actionToExecute : dependencies)
 		{
 			try {
 				file = Configuration.getClassForAction(actionToExecute, originalFile.getAbsolutePath()).execute(file);
@@ -98,7 +98,7 @@ public class NLPProcessor
 			}
 		}
 		
-		for(INLPAction action : actions)
+		for(INLPActionFile action : actions)
 		{
 			try {
 				action.execute(file);
@@ -203,6 +203,44 @@ public class NLPProcessor
 	{
 		TokenFileFormatter formatter = new TokenFileFormatter(file);
 		formatter.updateFromExternalTool(processor, new SennaFormatter());
+		for(TokenizedSentence sentence : file)
+		{
+			sentence.verbs = new ArrayList<>();
+			for(Word w : sentence)
+			{
+				if(w.isVerb)
+				{
+					sentence.verbs.add(w);
+					sentence.semanticRoles.put(w, new Hashtable<>());
+				}
+				
+			}
+			
+			int verbPos = 0;
+			for(Word verb : sentence.verbs)
+			{
+				for(Word w : sentence)
+				{
+					if(w.semanticRoles != null && w.semanticRoles.size() > 0)
+					{
+						SemanticRole sr = w.semanticRoles.get(verbPos);
+						if(sr.argument != null)
+						{
+							if(!sentence.semanticRoles.get(verb).containsKey(sr.argument))
+							{
+								sentence.semanticRoles.get(verb).put(sr.argument, new SemanticRole());
+								sentence.semanticRoles.get(verb).get(sr.argument).argument = sr.argument;
+							}
+							
+							sentence.semanticRoles.get(verb).get(sr.argument).words.add(w);
+						}
+					}
+					
+				}
+				verbPos++;
+			}
+			
+		}
 		return file;
 	}
 	
@@ -215,14 +253,6 @@ public class NLPProcessor
 		{
 		case EN:
 			file = new StanfordSynt().run(originalFile.getAbsolutePath(), Configuration.getLanguage());
-			
-		/*	file.annotations.get(Coreference.class).forEach((coreference) -> {
-				Logger.WriteDebug(coreference.toString());
-			});
-			*/
-		//	Logger.WriteDebug(file.annotations.get(Coreference.class).get(0).toString());
-			//file.setType(FilesType.treetag);
-			//file = tokenizeFile(new TreeTagger());
 			file = setSemanticFeatures(new Senna());
 			
 			featureExtractor = new FeatureExtractorEnglish();
@@ -279,8 +309,8 @@ public class NLPProcessor
 		*/
 		//TimexNormalization.normalize(file);
 		
-		formatter = new TokenFileFormatter(file);
-		formatter.toFile(null, new TempEvalClassikFeaturesAnnotatedNormalizationNormalizedFormatter());
+		//formatter = new TokenFileFormatter(file);
+		//formatter.toFile(null, new TempEvalClassikFeaturesAnnotatedNormalizationNormalizedFormatter());
 		
 	}
 	
@@ -357,7 +387,7 @@ public class NLPProcessor
 	
 	public void setMakeInstancesFromEvents()
 	{
-		TimeMLFile timeFeatures = new TimeMLFile(file);
+		TimeMLFile timeFeatures = (TimeMLFile)file;
 		tml = new TimeML(timeFeatures);
 
 		for(TokenizedSentence sentence : timeFeatures)
@@ -379,7 +409,7 @@ public class NLPProcessor
 	{
 		Logger.WriteDebug("Recognizing TLINKs");
 
-		TimeMLFile timeFeatures = new TimeMLFile(file);
+		TimeMLFile timeFeatures = (TimeMLFile)file;
 		tml = new TimeML(timeFeatures);
 		
 		MakeInstance previousSentenceMainEvent = null;

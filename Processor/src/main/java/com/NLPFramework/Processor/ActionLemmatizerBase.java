@@ -4,12 +4,12 @@ import java.util.ArrayList;
 
 import com.NLPFramework.Domain.TokenizedFile;
 
-public abstract class ActionLemmatizerBase implements INLPAction {
+public abstract class ActionLemmatizerBase implements INLPActionFile {
 
 	@Override
-	public ArrayList<Class<? extends INLPAction>> getDependencies()
+	public ArrayList<Class<? extends INLPActionFile>> getDependencies()
 	{
-		ArrayList<Class<? extends INLPAction>> dependencies = new ArrayList<>();
+		ArrayList<Class<? extends INLPActionFile>> dependencies = new ArrayList<>();
 		dependencies.add(ActionTokenizerBase.class);
 		
 		return dependencies;

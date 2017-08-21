@@ -1,4 +1,4 @@
-package com.NLPFramework.Formatters;
+package com.NLPFramework.Formatters.TimeML;
 
 import com.NLPFramework.TimeML.Domain.TimeLink;
 

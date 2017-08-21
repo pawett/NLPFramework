@@ -95,9 +95,12 @@ public class ActionBuilder
 			case TEST:
 				break;
 			case TRAIN:
+				actionExecutor = new TrainAction(task, element, train_dir, approach, Configuration.getLanguage(), rebuild_dataset, Configuration.getMachineLearningMethod());
 				break;
 			case TRAIN_AND_TEST:
-				actionExecutor = new TrainTestAction(task, element, train_dir, test_dir, approach, Configuration.getLanguage(), rebuild_dataset, Configuration.getMachineLearningMethod());
+				actionExecutor = new TrainAction(task, element, train_dir, approach, Configuration.getLanguage(), rebuild_dataset, Configuration.getMachineLearningMethod());
+				actionExecutor.execute();
+				actionExecutor = new TestAction(task, element, test_dir, approach, Configuration.getLanguage(), rebuild_dataset, Configuration.getMachineLearningMethod());
 				break;
 			case GETDATA:
 				actionExecutor = new GetData(Configuration.getFolderPath());
