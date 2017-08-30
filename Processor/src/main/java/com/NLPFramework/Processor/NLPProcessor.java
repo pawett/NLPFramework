@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.stream.Collectors;
 
 import org.joda.time.DateTime;
 
@@ -201,46 +202,9 @@ public class NLPProcessor
 	
 	public TokenizedFile setSemanticFeatures(ITextProcessor processor)
 	{
-		TokenFileFormatter formatter = new TokenFileFormatter(file);
-		formatter.updateFromExternalTool(processor, new SennaFormatter());
-		for(TokenizedSentence sentence : file)
-		{
-			sentence.verbs = new ArrayList<>();
-			for(Word w : sentence)
-			{
-				if(w.isVerb)
-				{
-					sentence.verbs.add(w);
-					sentence.semanticRoles.put(w, new Hashtable<>());
-				}
-				
-			}
-			
-			int verbPos = 0;
-			for(Word verb : sentence.verbs)
-			{
-				for(Word w : sentence)
-				{
-					if(w.semanticRoles != null && w.semanticRoles.size() > 0)
-					{
-						SemanticRole sr = w.semanticRoles.get(verbPos);
-						if(sr.argument != null)
-						{
-							if(!sentence.semanticRoles.get(verb).containsKey(sr.argument))
-							{
-								sentence.semanticRoles.get(verb).put(sr.argument, new SemanticRole());
-								sentence.semanticRoles.get(verb).get(sr.argument).argument = sr.argument;
-							}
-							
-							sentence.semanticRoles.get(verb).get(sr.argument).words.add(w);
-						}
-					}
-					
-				}
-				verbPos++;
-			}
-			
-		}
+		ActionSemanticParserSenna sennaSRL = new ActionSemanticParserSenna();
+		sennaSRL.execute(file);
+		
 		return file;
 	}
 	
@@ -254,7 +218,8 @@ public class NLPProcessor
 		case EN:
 			file = new StanfordSynt().run(originalFile.getAbsolutePath(), Configuration.getLanguage());
 			file = setSemanticFeatures(new Senna());
-			
+			//ActionCoreferenceCoreNLP sem = new ActionCoreferenceCoreNLP();
+			//sem.execute(file);
 			featureExtractor = new FeatureExtractorEnglish();
 			break;
 		case ES:
@@ -275,7 +240,7 @@ public class NLPProcessor
 	public void processTimex()
 	{
 		Logger.WriteDebug("Recognizing TIMEX3s");
-		;
+		
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
 		String dctFile = sdf.format(new Date());
 		Timex3 dctTimex = ((TimeMLFile)file).getDCT();

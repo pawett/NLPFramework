@@ -62,7 +62,7 @@ public class Word implements Serializable
 	public String lemma = "lemma";
 	public String lemmaRec = lemma;
 	public String wn = "wn";
-	public String ner = "-";
+	public EntityType ner = null;
 	public boolean isVerb = false;
 	
 	public SemanticRole getSemanticRole()

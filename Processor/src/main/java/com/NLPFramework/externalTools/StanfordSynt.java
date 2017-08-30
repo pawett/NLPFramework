@@ -9,6 +9,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import com.NLPFramework.Domain.Coreference;
+import com.NLPFramework.Domain.EntityType;
 import com.NLPFramework.Domain.Language;
 import com.NLPFramework.Domain.TokenizedFile;
 import com.NLPFramework.Domain.TokenizedSentence;
@@ -139,7 +140,7 @@ public class StanfordSynt implements ITextProcessor {
 					w.word = word;
 					w.lemma = token.get(LemmaAnnotation.class);
 					w.pos = token.get(PartOfSpeechAnnotation.class);
-					w.ner = token.getString(NamedEntityTagAnnotation.class);
+					w.ner = EntityType.getEntityTypeFromText(token.getString(NamedEntityTagAnnotation.class));
 					tokSent.add(w);
 					tokNum++;
 				//}

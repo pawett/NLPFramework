@@ -59,7 +59,9 @@ public class StanfordCoreSingleton {
 			props.put("annotators", "tokenize,ssplit,pos,lemma,ner,parse, mention,coref");//,ner,parse,mention,coref");
 			//props.put("openie.resolve_coref", "true");
 			props.put("coref.algorithm", "neural");
-			props.put("coref.neural.greedyness", "0.35");
+			//props.put("coref.maxMentionDistance", "25");
+			//props.put("coref.neural.greedyness", "0.45");
+			props.put("coref.maxMentionDistanceWithStringMatch", "100");
 			//props.put("openie.triple.strict" ,"true");
 			//props.put("ner.useSUTime", "true");
 			//props.put("sutime.markTimeRanges", "true");

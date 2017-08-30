@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import com.NLPFramework.Crosscutting.Logger;
+import com.NLPFramework.Domain.EntityType;
 import com.NLPFramework.Domain.TokenizedFile;
 import com.NLPFramework.Domain.TokenizedSentence;
 import com.NLPFramework.Domain.Word;
@@ -40,7 +41,7 @@ public class ActionNERSenna extends ActionNERBase {
 					String word = valuesArray[0];
 					String ner = valuesArray[1];
 					if(currentWord.word.equals(word))
-						currentWord.ner = ner;
+						currentWord.ner = EntityType.getEntityTypeFromText(ner);
 					else
 						Logger.WriteDebug(String.format("%s does not match with %s", currentWord.word, word));
 					

@@ -33,11 +33,12 @@ public class ClientBase {
 			String textEncoded =  URLEncoder.encode(text, "UTF-8");
 			
 			webResource = webResource.queryParam("text", text);
-			webResource = webResource.queryParam("confidence", URLEncoder.encode("0.5", "UTF-8"));
+			webResource = webResource.queryParam("confidence", URLEncoder.encode("0.45", "UTF-8"));
 			webResource = webResource.queryParam("support", URLEncoder.encode("0", "UTF-8"));
 			webResource = webResource.queryParam("spotter", "Default");
 			webResource = webResource.queryParam("disambiguator", "Default");
 			
+			//DBpedia:Device,DBpedia:Organisation,DBpedia:Person,DBpedia:Work
 			//webResource = webResource.queryParam("policy", "blacklist");
 			//webResource = webResource.queryParam("types", URLEncoder.encode("Schema:Event,Schema:Language,Schema:Place", "UTF-8"));
 			webResource = webResource.queryParam("sparql", "");

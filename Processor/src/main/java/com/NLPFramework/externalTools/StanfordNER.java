@@ -188,6 +188,8 @@ public class StanfordNER implements ITextProcessor {
 						eMap.endWordPosition = firstElement.sentencePosition;
 						timex.type = TimeType.valueOf(ner);
 						timex.value = value;
+						if(t != null && t.beginPoint() == 0)
+							timex.anchorTimeID = "t0";
 						sentence.addAnnotation(timex.getClass(), firstElement, eMap);
 						
 

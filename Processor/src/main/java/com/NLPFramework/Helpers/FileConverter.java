@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.NLPFramework.Crosscutting.Logger;
 import com.NLPFramework.Domain.Language;
@@ -60,7 +61,7 @@ public class FileConverter {
      * @param approach
      */
     //TODO: This must return an TokenizedFileHashtable. This way it is possible to get rid of the awful TokenizedHashtable constructor, by saving the class as binary
-    public static TokenizedFileHashtable tmldir2features(File basedir, String approach)
+    public static  List<File> getTimeMLFilesFromDir(File basedir, String approach)
     {
         String featuresdir = basedir.getParent() + File.separator + basedir.getName() + "_" + approach + "_features" + File.separator;
         try 
@@ -84,8 +85,8 @@ public class FileConverter {
                 tmlfiles = StringUtils.concatArray(tmlfiles, tmldirs[i].listFiles(FileUtils.onlyFilesFilter));
             }
 
-           List<File> files = Arrays.asList(tmlfiles);
-           ArrayList<TokenizedFile> filesAnnotated = new ArrayList<>();
+         return Arrays.asList(tmlfiles).stream().filter(f -> f.getAbsolutePath().endsWith(".tml")).collect(Collectors.toList());
+         /*  ArrayList<TokenizedFile> filesAnnotated = new ArrayList<>();
            files.parallelStream().forEach((tmlFile) -> {
         	   try {
         		   TokenizedFile file = processFile(approach, Configuration.getLanguage(), featuresdir, tmlFile);
@@ -107,7 +108,7 @@ public class FileConverter {
         	   hashtableFiles.put(f.getName(), f);
 			}
          
-           return hashtableFiles;
+           return hashtableFiles;*/
 
 
         } catch (Exception e) 
@@ -120,46 +121,7 @@ public class FileConverter {
 
     }
 
-	private static TokenizedFile processFile(String approach, Language lang, String featuresdir, File tmlfile)
-			throws Exception, IOException 
-	{
-		if (System.getProperty("DEBUG") != null && System.getProperty("DEBUG").equalsIgnoreCase("true")) {
-		    System.err.println("File: " + tmlfile.getAbsolutePath());
-		}
-		NLPFile nlpfile = new PlainFile(tmlfile.getAbsolutePath());
-		nlpfile.setLanguage(lang);
-		if (!(FileUtils.getNLPFormat(nlpfile.getFile())).equalsIgnoreCase("XML")) {
-		   // throw new Exception("TimeML (.tml) XML file is required as input. Found: " + nlpfile.getFile().getCanonicalPath());
-			return  null;
-		}
 
-		XMLFile xmlfile = new XMLFile(nlpfile.getFile().getAbsolutePath(),null);
-		xmlfile.setLanguage(lang);
-		if (!xmlfile.getExtension().equalsIgnoreCase("tml")) {
-		    throw new Exception("TimeML (.tml) XML file is required as input.");
-		}
-
-		if (!xmlfile.isWellFormatted()) {
-		    throw new Exception("File: " + xmlfile.getFile() + " is not a valid TimeML (.tml) XML file.");
-		}
-
-		// Create a working directory (commented because that way we can reuse roth-freeling annotations)
-		File dir = new File(nlpfile.getFile().getCanonicalPath() + "-" + approach + "_features/");
-		if (!dir.exists() || !dir.isDirectory()) {
-		    dir.mkdir();
-		}
-		// Copy the valid TML-XML file
-		String output = dir + File.separator + nlpfile.getFile().getName();
-		FileUtils.copyFileUtil(nlpfile.getFile(), new File(output));
-		xmlfile = new XMLFile(output,null);
-
-		
-		TokenizedFile f = TMLExtractor.getAnnotationsFromTML(xmlfile.getFile().getCanonicalPath(), lang);
-		FeaturesFormatter format = new FeaturesFormatter();
-		TokenFileFormatter formatter = new TokenFileFormatter(f);
-		formatter.toFile(dir.getAbsolutePath(), format);
-		return f;
-	}
 
 
 

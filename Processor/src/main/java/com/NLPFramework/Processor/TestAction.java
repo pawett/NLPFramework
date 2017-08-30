@@ -1,10 +1,8 @@
 package com.NLPFramework.Processor;
 
 import java.io.File;
-import java.util.ArrayList;
 
 import com.NLPFramework.Domain.Language;
-import com.NLPFramework.Domain.TokenizedFile;
 import com.NLPFramework.Domain.TokenizedFileHashtable;
 import com.NLPFramework.Formatters.ISentenceFormatter;
 import com.NLPFramework.Formatters.TimeML.FeaturesEventAnnotatedFormatter;
@@ -21,12 +19,6 @@ import com.NLPFramework.TimeML.Test.TestEventTimexClassification;
 import com.NLPFramework.TimeML.Test.TestTimexClassification;
 import com.NLPFramework.TimeML.Test.TestTimexRecognition;
 import com.NLPFramework.TimeML.Train.TrainBase;
-import com.NLPFramework.TimeML.Train.TrainEventClassification;
-import com.NLPFramework.TimeML.Train.TrainEventDCTClassification;
-import com.NLPFramework.TimeML.Train.TrainEventEventClassification;
-import com.NLPFramework.TimeML.Train.TrainEventRecognition;
-import com.NLPFramework.TimeML.Train.TrainEventSubEventClassification;
-import com.NLPFramework.TimeML.Train.TrainEventTimexClassification;
 import com.NLPFramework.externalTools.IMachineLearningMethod;
 import com.NLPFramework.externalTools.SVM;
 
@@ -63,7 +55,7 @@ public class TestAction implements IActionExecutor
 		
 		if (rebuildDataSet || !new File(featuresTestFilePath).exists())
 		{
-			TokenizedFileHashtable testFiles = FileConverter.tmldir2features(testDir, approach);
+			TokenizedFileHashtable testFiles = TMLExtractor.getAnnotationsFromDir(testDir);
 			String featuresDir = testDir.getParent() + File.separator + testDir.getName() + "_" + approach + "_features" + File.separator;
 			FileHelper.saveFilesAsBinary(testFiles, featuresDir);
 		}

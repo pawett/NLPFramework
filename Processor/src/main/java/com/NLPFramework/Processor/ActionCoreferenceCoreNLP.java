@@ -79,6 +79,7 @@ public class ActionCoreferenceCoreNLP extends ActionTokenizerBase {
 			for(Mention m : mentions)
 			{
 				TokenizedSentence sentence = tokFile.get(m.sentNum);
+				
 				CorefChain chain = coreferences.get(m.corefClusterID);
 				Logger.Write(m.lowercaseNormalizedSpanString());
 				if(chain != null)
@@ -88,16 +89,44 @@ public class ActionCoreferenceCoreNLP extends ActionTokenizerBase {
 					CoreLabel iw = m.dependingVerb.backingLabel();
 					int depVerbPosition = iw.get(IndexAnnotation.class)-1;
 					
+					
 					Entity e = new Entity();
 					e.word = sentence.get(m.startIndex);
 					e.offset = m.endIndex - m.startIndex;
 					
+					Word mainWord = sentence.get(m.startIndex);
+					
 					Word depVerb = sentence.get(depVerbPosition);//.getWordDependantVerb(e.word);
+					depVerb.isVerb = true;
+					sentence.verbs.add(depVerb);
+					if(m.isSubject)
+					{
+						
+						Word next = mainWord;
+						while(next.sentencePosition < m.endIndex)
+						{
+							sentence.addSemanticRole(PropBankArgument.A0, depVerb, next);
+							next = next.next;
+						}
+						
+					}
+					
+					if(m.isDirectObject)
+					{
+						
+						Word next = mainWord;
+						while(next != null && next.sentencePosition <= m.endIndex)
+						{
+							sentence.addSemanticRole(PropBankArgument.A1, depVerb, next);
+							next = next.next;
+						}
+						
+					}
 					EntityMapper<com.NLPFramework.Domain.Annotation> map = sentence.annotations.get(JournalistInfo.class) != null ? sentence.annotations.get(JournalistInfo.class).get(depVerb) : null;
 					if(map == null)
 						 map = new EntityMapper<>();
 					JournalistInfo ji = map.element != null ? (JournalistInfo) map.element : new JournalistInfo();
-					
+				/*	
 					if(m.isDirectObject)
 					{
 						e.role = PropBankArgument.A1;
@@ -116,6 +145,7 @@ public class ActionCoreferenceCoreNLP extends ActionTokenizerBase {
 					map.element = ji;
 					if(sentence.annotations.get(JournalistInfo.class) == null || sentence.annotations.get(JournalistInfo.class).get(depVerb) == null)
 						sentence.addAnnotation(JournalistInfo.class, ji.what.word, map);
+						*/
 				}
 					
 			}

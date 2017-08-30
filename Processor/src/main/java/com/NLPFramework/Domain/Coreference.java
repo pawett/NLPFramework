@@ -42,7 +42,7 @@ public class Coreference extends Annotation {
 		StringBuilder sb = new StringBuilder();
 		sb.append(word);
 		Word nextWord = word.next;
-		for(int i = 1 ; i < offset; i++)
+		for(int i = 1 ; i < offset && nextWord!= null; i++)
 		{
 			sb.append(" " + nextWord);
 			nextWord = nextWord.next;

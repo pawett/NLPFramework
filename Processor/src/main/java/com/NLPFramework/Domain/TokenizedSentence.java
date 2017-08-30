@@ -19,7 +19,7 @@ public class TokenizedSentence  extends LinkedList<Word>{
 	public String synt;
 	public LinkedList<TokenizedSentence> subSentences = new LinkedList<>();
 	public ArrayList<Word> verbs = new ArrayList<>();
-	public Hashtable<Word, Hashtable<PropBankArgument,SemanticRole>> semanticRoles = new Hashtable<>();
+	private Hashtable<Word, Hashtable<PropBankArgument,SemanticRole>> semanticRoles = new Hashtable<>();
 	/*public Hashtable<Word,ArrayList<Word>> events = new Hashtable<Word, ArrayList<Word>>();
 	public Hashtable<Word,ArrayList<Word>> times = new  Hashtable<Word,ArrayList<Word>>();
 	*/
@@ -62,6 +62,43 @@ public class TokenizedSentence  extends LinkedList<Word>{
 		
 		return verb;
 				
+	}
+	
+	public void addSemanticRole(PropBankArgument role,Word depVerb, Word w)
+	{
+		if(role == null || depVerb == null || w == null)
+			return;
+		if(semanticRoles.get(depVerb) == null)
+		{
+			semanticRoles.put(depVerb, new Hashtable<>());
+		}
+		
+		if(!semanticRoles.get(depVerb).containsKey(role))
+		{
+			SemanticRole sr = new SemanticRole();
+			sr.argument = role;
+			semanticRoles.get(depVerb).put(role, sr);
+		}
+		if(!semanticRoles.get(depVerb).get(role).words.contains(w))
+			semanticRoles.get(depVerb).get(role).words.add(w);
+	}
+	
+	public SemanticRole getSemanticRoleForEvent(Word event, PropBankArgument role)
+	{
+		if(semanticRoles.get(event) != null)
+		{
+			if(semanticRoles.get(event).get(role) != null)
+			{
+				return semanticRoles.get(event).get(role);
+			}
+		}
+		
+		return null;
+	}
+	
+	public Hashtable<Word, Hashtable<PropBankArgument,SemanticRole>> getSemanticRoles()
+	{
+		return semanticRoles;
 	}
 	
 	public Word getWordDependantVerb(Word w)

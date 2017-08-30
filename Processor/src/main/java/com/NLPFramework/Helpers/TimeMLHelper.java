@@ -99,6 +99,16 @@ public class TimeMLHelper {
 		 return null;
 	 }
 	 
+	 public static boolean isWordInNamePhrase(TokenizedSentence sentence, Word w)
+	 {
+
+		 TokenizedSentence subsent = sentence.getWordSubSentence(w);
+		 if(subsent.prev.synt.contains("NP") || ( subsent.prev.prev != null && subsent.prev.prev.synt.contains("NP")))
+			 return true;
+		 
+		 return false;
+	 }
+	 
 	 //TODO:Check this does not sees to work properly
 	 public static Timex3 getTimexAnnotatedByDependantVerb(TimeMLFile file, Word depVerb) 
 	 {
@@ -256,6 +266,54 @@ public class TimeMLHelper {
 		 return contextTime; //contextTime;
 	 }
 	 
+	 public static ArrayList<Annotation> getSentenceTimexes(TokenizedSentence sentence)
+	 {
+		 Timex3 time = null;
+		ArrayList<Annotation> timexes = new ArrayList<>();
+
+			 if(sentence.annotations.get(Timex3.class) != null)
+			 {		
+				 for(Word w : sentence.annotations.get(Timex3.class).keySet())
+				 {
+					 timexes.add(sentence.annotations.get(Timex3.class).get(w).element);
+				 }
+			 }
+			 if(sentence.annotations.get(Timex3Date.class) != null)
+			 {
+				 for(Word w : sentence.annotations.get(Timex3Date.class).keySet())
+				 {
+					 timexes.add(sentence.annotations.get(Timex3Date.class).get(w).element);
+				 }
+			 }
+
+			 if(sentence.annotations.get(Timex3Time.class) != null)
+			 {
+				 for(Word w : sentence.annotations.get(Timex3Time.class).keySet())
+				 {
+					 timexes.add(sentence.annotations.get(Timex3Time.class).get(w).element);
+				 }
+			 }
+
+			 if(sentence.annotations.get(Timex3Duration.class) != null)
+			 {
+				 for(Word w : sentence.annotations.get(Timex3Duration.class).keySet())
+				 {
+					 timexes.add(sentence.annotations.get(Timex3Duration.class).get(w).element);
+				 }
+			 }
+
+			 if(sentence.annotations.get(Timex3Set.class) != null)
+			 {
+				 for(Word w : sentence.annotations.get(Timex3Set.class).keySet())
+				 {
+					 timexes.add(sentence.annotations.get(Timex3Set.class).get(w).element);
+				 }
+			 }
+			
+			 return timexes;
+			 
+	 }
+	 
 	 public static Timex3 getTimexFromFile(TimeMLFile file, Word w)
 	 {
 		 Timex3 time = null;
@@ -334,7 +392,7 @@ public class TimeMLHelper {
 
 
 		 firstWordSentence = getWordSentence(firstWordSentence, w);
-		 secondWordSentence = getWordSentence(secondWordSentence, w);
+		 secondWordSentence = getWordSentence(secondWordSentence, w2);
 		 if(firstWordSentence != secondWordSentence)
 			 return false;
 		 
@@ -355,18 +413,10 @@ public class TimeMLHelper {
 		 
 	 public static TokenizedSentence getWordSentence(TokenizedSentence s, Word w)
 	 {
-		 TokenizedSentence wordSubSentence = null;
-		 if(!s.synt.equalsIgnoreCase("ROOT") && s.contains(w))
-		 {
-			 return getSentenceForSubsentence(s);
-		 }
-		 for(TokenizedSentence subsentence : s.subSentences)
-		 {
-			 TokenizedSentence subSentence = subsentence.getWordSubSentence(w);
-			 if(subSentence != null)
-				 return  getSentenceForSubsentence(subSentence);
-		 }
-		 return wordSubSentence;
+		 TokenizedSentence wordSubSentence =  s.getWordSubSentence(w);
+
+		 return getSentenceForSubsentence(wordSubSentence);
+		
 	 }
 
 	 public static Word getSBARHead(TokenizedSentence s,Word w)
@@ -596,6 +646,21 @@ public class TimeMLHelper {
 			{
 				TimeLink tl = (TimeLink) annotation;
 				if((tl.eventInstance != null && tl.eventInstance.equals(makeInstance)) || (tl.relatedToEventInstance != null && tl.relatedToEventInstance.equals(makeInstance)))
+					relatedTimeLinks.add(tl);
+			}
+			
+			return relatedTimeLinks;
+			
+		}
+		
+		public static ArrayList<TimeLink> getAllT0RelatedTimeLinks(TimeMLFile file) 
+		{
+			ArrayList<TimeLink> relatedTimeLinks = new ArrayList<>();
+			LinkedList<Annotation> timeLinks = file.annotations.get(TimeLink.class);
+			for(Annotation annotation : timeLinks)
+			{
+				TimeLink tl = (TimeLink) annotation;
+				if(tl.relatedToTime != null && (tl.relatedToTime.id.equals("0") || tl.relatedToTime.id.equals("t0")))
 					relatedTimeLinks.add(tl);
 			}
 			

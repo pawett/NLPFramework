@@ -1,12 +1,13 @@
 package com.NLPFramework.Domain;
 
 import java.io.Serializable;
+import java.util.LinkedList;
 
 public class SemanticRole extends Annotation implements Serializable {
 	//public Word verb = null;
 	public PropBankArgument argument = null;
 	public String IOB="O";
-	public TokenizedSentence words = new TokenizedSentence();
+	public LinkedList<Word> words = new LinkedList<>();
 	
 	public String toString()
 	{

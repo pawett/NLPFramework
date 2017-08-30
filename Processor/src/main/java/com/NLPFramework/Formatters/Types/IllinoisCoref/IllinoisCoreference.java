@@ -18,7 +18,7 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
 "nodes",
 "links"
 })
-public class Coref implements Serializable
+public class IllinoisCoreference implements Serializable
 {
 
 @JsonProperty("nodes")
@@ -33,7 +33,7 @@ private final static long serialVersionUID = -691030056837858513L;
 * No args constructor for use in serialization
 * 
 */
-public Coref() {
+public IllinoisCoreference() {
 }
 
 /**
@@ -41,7 +41,7 @@ public Coref() {
 * @param nodes
 * @param links
 */
-public Coref(List<Node> nodes, List<Link> links) {
+public IllinoisCoreference(List<Node> nodes, List<Link> links) {
 super();
 this.nodes = nodes;
 this.links = links;
@@ -57,7 +57,7 @@ public void setNodes(List<Node> nodes) {
 this.nodes = nodes;
 }
 
-public Coref withNodes(List<Node> nodes) {
+public IllinoisCoreference withNodes(List<Node> nodes) {
 this.nodes = nodes;
 return this;
 }
@@ -72,7 +72,7 @@ public void setLinks(List<Link> links) {
 this.links = links;
 }
 
-public Coref withLinks(List<Link> links) {
+public IllinoisCoreference withLinks(List<Link> links) {
 this.links = links;
 return this;
 }
@@ -87,7 +87,7 @@ public void setAdditionalProperty(String name, Object value) {
 this.additionalProperties.put(name, value);
 }
 
-public Coref withAdditionalProperty(String name, Object value) {
+public IllinoisCoreference withAdditionalProperty(String name, Object value) {
 this.additionalProperties.put(name, value);
 return this;
 }

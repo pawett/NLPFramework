@@ -1,8 +1,12 @@
 package com.NLPFramework.Processor;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -16,9 +20,17 @@ import org.w3c.dom.NodeList;
 import com.NLPFramework.Crosscutting.Logger;
 import com.NLPFramework.Domain.Language;
 import com.NLPFramework.Domain.TokenizedFile;
+import com.NLPFramework.Domain.TokenizedFileHashtable;
 import com.NLPFramework.Domain.TokenizedSentence;
 import com.NLPFramework.Domain.Word;
+import com.NLPFramework.Files.NLPFile;
+import com.NLPFramework.Files.PlainFile;
+import com.NLPFramework.Files.XMLFile;
+import com.NLPFramework.Formatters.FeaturesFormatter;
+import com.NLPFramework.Formatters.TokenFileFormatter;
+import com.NLPFramework.Helpers.FileConverter;
 import com.NLPFramework.Helpers.FileHelper;
+import com.NLPFramework.Helpers.FileUtils;
 import com.NLPFramework.TimeML.Domain.AspectualLink;
 import com.NLPFramework.TimeML.Domain.AspectualLinkType;
 import com.NLPFramework.TimeML.Domain.EntityMapper;
@@ -42,6 +54,41 @@ import com.NLPFramework.TimeML.Domain.Timex3Time;
 import com.NLPFramework.externalTools.StanfordSynt;
 
 public class TMLExtractor {
+	
+	
+	public static TokenizedFileHashtable getAnnotationsFromDir(File dataPath)
+	{
+		TokenizedFileHashtable files = new TokenizedFileHashtable();
+		List<File> filesFromDir  = FileConverter.getTimeMLFilesFromDir(dataPath, "SemEval4");
+		Iterator<Entry<String, TokenizedFile>> it = files.entrySet().iterator();
+		TokenizedFileHashtable hashtableFiles = new TokenizedFileHashtable();
+		//TODO: extract timeLine
+		for(File f : filesFromDir)
+		{
+			XMLFile xmlfile = null;
+			try {
+				xmlfile = checkTimeMLFile("SemEval4", Configuration.getLanguage(), dataPath.getAbsolutePath(), f);
+
+				TokenizedFile tokFile = getAnnotationsFromTML(xmlfile.getFile().getCanonicalPath(), Configuration.getLanguage());
+
+				FeaturesFormatter format = new FeaturesFormatter();
+				TokenFileFormatter formatter = new TokenFileFormatter(tokFile);
+
+				File dir = new File(f.getCanonicalPath() + "-" + "SemEval4" + "_features/");
+
+				formatter.toFile(dir.getAbsolutePath(), format);
+				hashtableFiles.put(f.getName(), tokFile);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		return hashtableFiles;
+	}
 	
 	
 	public static TokenizedFile getAnnotationsFromTML(String tmlFilePath, Language lang)
@@ -599,6 +646,43 @@ public class TMLExtractor {
 			else 
 				sb.append(children.item(i).getTextContent());
 		}
+
+	}
+	
+	private static XMLFile checkTimeMLFile(String approach, Language lang, String featuresdir, File tmlfile)
+			throws Exception, IOException 
+	{
+		if (System.getProperty("DEBUG") != null && System.getProperty("DEBUG").equalsIgnoreCase("true")) {
+		    System.err.println("File: " + tmlfile.getAbsolutePath());
+		}
+		NLPFile nlpfile = new PlainFile(tmlfile.getAbsolutePath());
+		nlpfile.setLanguage(lang);
+		if (!(FileUtils.getNLPFormat(nlpfile.getFile())).equalsIgnoreCase("XML")) {
+		   // throw new Exception("TimeML (.tml) XML file is required as input. Found: " + nlpfile.getFile().getCanonicalPath());
+			return  null;
+		}
+
+		XMLFile xmlfile = new XMLFile(nlpfile.getFile().getAbsolutePath(),null);
+		xmlfile.setLanguage(lang);
+		if (!xmlfile.getExtension().equalsIgnoreCase("tml")) {
+		    throw new Exception("TimeML (.tml) XML file is required as input.");
+		}
+
+		if (!xmlfile.isWellFormatted()) {
+		    throw new Exception("File: " + xmlfile.getFile() + " is not a valid TimeML (.tml) XML file.");
+		}
+
+		// Create a working directory (commented because that way we can reuse roth-freeling annotations)
+		File dir = new File(nlpfile.getFile().getCanonicalPath() + "-" + approach + "_features/");
+		if (!dir.exists() || !dir.isDirectory()) {
+		    dir.mkdir();
+		}
+		// Copy the valid TML-XML file
+		String output = dir + File.separator + nlpfile.getFile().getName();
+		FileUtils.copyFileUtil(nlpfile.getFile(), new File(output));
+		xmlfile = new XMLFile(output,null);
+
+		return xmlfile;
 
 	}
 

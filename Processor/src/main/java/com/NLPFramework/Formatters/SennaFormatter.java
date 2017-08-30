@@ -1,5 +1,6 @@
 package com.NLPFramework.Formatters;
 
+import com.NLPFramework.Domain.EntityType;
 import com.NLPFramework.Domain.SemanticRole;
 import com.NLPFramework.Domain.Word;
 import com.NLPFramework.Helpers.FileHelper;
@@ -48,7 +49,7 @@ public class SennaFormatter  implements IWordFormatter {
 			word.syntbio = valuesArray[2].trim();
 		
 		if(!valuesArray[3].trim().equals("O"))
-				word.ner = valuesArray[3].trim().split("-")[1];
+				word.ner = EntityType.getEntityTypeFromText(valuesArray[3].trim().split("-")[1]);
 		
 		if(!valuesArray[4].trim().equals("-") && word.pos.startsWith("V"))
 			word.isVerb = true;

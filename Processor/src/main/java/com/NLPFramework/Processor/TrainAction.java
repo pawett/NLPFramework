@@ -62,7 +62,7 @@ public class TrainAction implements IActionExecutor
 		// Check for features files (train/test)
 		if (rebuildDataSet || !new File(featuresTrainFilePath).exists()) 
 		{
-			TokenizedFileHashtable trainFiles = FileConverter.tmldir2features(trainDir, approach);
+			TokenizedFileHashtable trainFiles = TMLExtractor.getAnnotationsFromDir(trainDir);
 			String featuresDir = trainDir.getParent() + File.separator + trainDir.getName() + "_" + approach + "_features" + File.separator;
 			FileHelper.saveFilesAsBinary(trainFiles, featuresDir);
 		}
