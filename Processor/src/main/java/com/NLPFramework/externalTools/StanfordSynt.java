@@ -66,6 +66,20 @@ public class StanfordSynt implements ITextProcessor {
 		return tokenizedArray;
 	}
 	
+	public static TokenizedFile run(TokenizedFile file)
+	{
+		for(int i= 0; i < file.size(); i++)
+		{
+			TokenizedSentence s = file.get(i);
+			StanfordCoreNLP pipeline = StanfordCoreSingleton.getPipeLine();
+			Annotation doc = new Annotation(s.getOriginalText());
+			pipeline.annotate(doc);
+			proccesSentenceTokenizer(file.getName(), s,i, doc);
+		}
+		
+		return file;
+	}
+	
 	public static TokenizedFile run(String filePath, Language lang)
 	{
 		StanfordCoreNLP pipeline = StanfordCoreSingleton.getNERPipeLine();
@@ -110,60 +124,7 @@ public class StanfordSynt implements ITextProcessor {
 		    }
 		  */
 		
-		for(CoreMap s : doc.get(SentencesAnnotation.class))
-		{
-			  
-			TokenizedSentence tokSent = new TokenizedSentence();
-			tokSent.originalText = s.get(TextAnnotation.class);
-		
-			//SemanticGraph dependencies = s.get(EnhancedPlusPlusDependenciesAnnotation.class);
-			
-		/*	for (Mention m : s.get(CorefCoreAnnotations.CorefMentionsAnnotation.class)) {
-				tokSent.addAnnotation(Mention.class, null, null);
-		       }*/
-			
-			
-			boolean isInsideTime = false;
-			int tokNum = 0;
-			 for (CoreLabel token: s.get(TokensAnnotation.class))
-			{
-				String word = token.get(TextAnnotation.class);
-				String[] words = word.split("\\s+");
-				//int tokNum = token.get(IndexAnnotation.class)-1;
-				//for(int i = 0; i < words.length; i++)
-				//{
-			
-					Word w = new Word();
-					w.file = file.getName();
-					w.sentenceNumber = token.get(SentenceIndexAnnotation.class);
-					w.sentencePosition = tokNum;
-					w.word = word;
-					w.lemma = token.get(LemmaAnnotation.class);
-					w.pos = token.get(PartOfSpeechAnnotation.class);
-					w.ner = EntityType.getEntityTypeFromText(token.getString(NamedEntityTagAnnotation.class));
-					tokSent.add(w);
-					tokNum++;
-				//}
-				/*String ner = token.getString(NamedEntityTagAnnotation.class);
-				if(ner.matches("DATE|TIME|PERIOD"))
-				{
-					w.semanticRole = "TMP";
-					if(isInsideTime)
-						w.semanticRoleIOB = "I";
-					else
-						w.semanticRoleIOB = "B";
-				}else
-				{
-					isInsideTime = false;
-				}*/
-				
-				
-			}
-				Tree tree = s.get(TreeAnnotation.class);
-				//setSyntacticTree(tree.firstChild(), tokSent);
-			 tokFile.add(tokSent);
-			
-		}
+		proccesSentence(file.getName(), tokFile, doc);
 		
 		/* for (CorefChain cc : doc.get(CorefCoreAnnotations.CorefChainAnnotation.class).values()) {
 		     // System.out.println("\t" + cc);
@@ -193,6 +154,98 @@ public class StanfordSynt implements ITextProcessor {
 		
 		return tokFile;
 		
+	}
+	
+	private static void proccesSentenceTokenizer(String fileName, TokenizedSentence tokSentence, int sentN, Annotation doc) 
+	{
+		int tokNum = 0;
+		for(CoreLabel token : doc.get(TokensAnnotation.class))
+		{
+
+			//TokenizedSentence tokSent = new TokenizedSentence();
+			//tokSent.originalText = s.get(TextAnnotation.class);
+
+
+			boolean isInsideTime = false;
+			
+			//for (CoreLabel token: s.get(TokensAnnotation.class))
+			//{
+				String word = token.get(TextAnnotation.class);
+				String[] words = word.split("\\s+");
+
+				Word w = new Word();
+				w.file = fileName;
+				w.sentenceNumber = sentN;
+				w.sentencePosition = tokNum;
+				w.word = word;
+				w.lemma = token.get(LemmaAnnotation.class);
+				w.pos = token.get(PartOfSpeechAnnotation.class);
+
+				//tokSent.add(w);
+				tokNum++;
+
+
+			//}
+
+				tokSentence.add(w);
+
+		}
+	}
+
+	private static void proccesSentence(String fileName, TokenizedFile tokFile, Annotation doc) {
+		for(CoreMap s : doc.get(SentencesAnnotation.class))
+		{
+			  
+			TokenizedSentence tokSent = new TokenizedSentence();
+			tokSent.originalText = s.get(TextAnnotation.class);
+		
+			//SemanticGraph dependencies = s.get(EnhancedPlusPlusDependenciesAnnotation.class);
+			
+		/*	for (Mention m : s.get(CorefCoreAnnotations.CorefMentionsAnnotation.class)) {
+				tokSent.addAnnotation(Mention.class, null, null);
+		       }*/
+			
+			
+			boolean isInsideTime = false;
+			int tokNum = 0;
+			 for (CoreLabel token: s.get(TokensAnnotation.class))
+			{
+				String word = token.get(TextAnnotation.class);
+				String[] words = word.split("\\s+");
+				//int tokNum = token.get(IndexAnnotation.class)-1;
+				//for(int i = 0; i < words.length; i++)
+				//{
+			
+					Word w = new Word();
+					w.file = fileName;
+					w.sentenceNumber = token.get(SentenceIndexAnnotation.class);
+					w.sentencePosition = tokNum;
+					w.word = word;
+					w.lemma = token.get(LemmaAnnotation.class);
+					w.pos = token.get(PartOfSpeechAnnotation.class);
+					w.ner = EntityType.getEntityTypeFromText(token.getString(NamedEntityTagAnnotation.class));
+					tokSent.add(w);
+					tokNum++;
+				//}
+				/*String ner = token.getString(NamedEntityTagAnnotation.class);
+				if(ner.matches("DATE|TIME|PERIOD"))
+				{
+					w.semanticRole = "TMP";
+					if(isInsideTime)
+						w.semanticRoleIOB = "I";
+					else
+						w.semanticRoleIOB = "B";
+				}else
+				{
+					isInsideTime = false;
+				}*/
+				
+				
+			}
+				
+			 tokFile.add(tokSent);
+			
+		}
 	}
 
 	

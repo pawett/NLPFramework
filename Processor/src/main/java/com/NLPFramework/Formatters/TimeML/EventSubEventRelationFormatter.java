@@ -25,7 +25,7 @@ public class EventSubEventRelationFormatter  implements IFileFormatter
 	{
 		StringBuilder sb = new StringBuilder();
 		
-		for(Object tlObject : file.annotations.get(TimeLink.class))
+		for(Object tlObject : file.getAnnotations(TimeLink.class))
 		{
 			String annotation = annotateTimeLink(file, tlObject);
 			if(annotation != null)

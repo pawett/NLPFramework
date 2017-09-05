@@ -132,7 +132,7 @@ public class ActionProcessNER extends ActionNERBase {
 						int a = 0;
 						Word next = w.next;
 						String name = w.word;
-						while(next != null && next.ner.equals(w.ner))
+						while(next != null && next.ner != null && next.ner.equals(w.ner))
 						{
 							name = name + "_" + next.word;
 							next = next.next;
@@ -144,8 +144,8 @@ public class ActionProcessNER extends ActionNERBase {
 						ner.type = w.ner;
 						map.element = ner;
 						map.firstWordPosition = w.sentencePosition;
-						map.endWordPosition = next.sentencePosition - 1;
-						lastNERposition = next.sentencePosition - 1;
+						map.endWordPosition = next != null ? next.sentencePosition - 1 : w.sentencePosition;
+						lastNERposition = map.endWordPosition;
 						//Logger.Write("NER Word found:: " + ner.entityName);
 
 						NERCoreferenceHelper.addCoreference(file, map);
@@ -164,7 +164,7 @@ public class ActionProcessNER extends ActionNERBase {
 	
 	private void mergeNERCoreferences(TimeMLFile file)
 	{
-		LinkedList<Annotation> annotations = file.annotations.get(NERCoreference.class);
+		LinkedList<Annotation> annotations = file.getAnnotations(NERCoreference.class);
 		LinkedList<Annotation> annotationsToDelete = new LinkedList<>();
 		if(annotations != null)
 		{
@@ -173,14 +173,18 @@ public class ActionProcessNER extends ActionNERBase {
 				NERCoreference currentNerAnnotation = (NERCoreference) currentAnnotation;
 			//	Logger.Write("NER Coref: " + currentNerAnnotation.toString());
 				List<Annotation> similarAnnotations = annotations.stream().filter(n -> !n.equals(currentAnnotation) &&
-						(((NERCoreference)n).mainCoref.element.entityName.contains(currentNerAnnotation.mainCoref.element.entityName) ) ) //|| nercoref.mainCoref.element.entityName.contains(((NERCoreference)n).mainCoref.element.entityName
+						(((NERCoreference)n).mainCoref.element.entityName.toLowerCase().contains(currentNerAnnotation.mainCoref.element.entityName.toLowerCase()) ) ) //|| nercoref.mainCoref.element.entityName.contains(((NERCoreference)n).mainCoref.element.entityName
 						.collect(Collectors.toList());
 				if(similarAnnotations != null)
 				{
 					for(Annotation similarAnnotation : similarAnnotations)
 					{
 						NERCoreference coref = (NERCoreference) similarAnnotation;
-						if(currentNerAnnotation.mainCoref.element.type.equals(EntityType.PERSON) && coref.mainCoref.element.type.equals(currentNerAnnotation.mainCoref.element.type))
+						//
+						if(coref.mainCoref.element.type != null 
+								&& currentNerAnnotation.mainCoref.element.type != null
+								&& coref.mainCoref.element.type.equals(currentNerAnnotation.mainCoref.element.type)
+								&& currentNerAnnotation.mainCoref.element.type.equals(EntityType.PERSON))
 						{
 							if(coref.mainCoref.element.word.sentenceNumber <= currentNerAnnotation.mainCoref.element.word.sentenceNumber)
 							{
@@ -208,10 +212,10 @@ public class ActionProcessNER extends ActionNERBase {
 		
 		for(Annotation annotationToDelete : annotationsToDelete)
 		{
-			file.annotations.get(NERCoreference.class).remove(annotationToDelete);
+			file.getAnnotations(NERCoreference.class).remove(annotationToDelete);
 		}
 		
-		annotations = file.annotations.get(NERCoreference.class);
+		annotations = file.getAnnotations(NERCoreference.class);
 		for(Annotation currentAnnotation : annotations)
 		{
 			NERCoreference currentNerAnnotation = (NERCoreference) currentAnnotation;

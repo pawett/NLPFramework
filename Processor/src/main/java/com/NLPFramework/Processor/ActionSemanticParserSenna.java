@@ -34,10 +34,11 @@ public class ActionSemanticParserSenna extends ActionSemanticParserBase {
 			{
 				for(Word w : sentence)
 				{
-					if(w.semanticRoles != null && w.semanticRoles.size() > 0)
+					if(w.semanticRoles != null && w.semanticRoles.size() > 0 && w.semanticRoles.size() > verbPos)
 					{
 						SemanticRole sr = w.semanticRoles.get(verbPos);
-						sentence.addSemanticRole(sr.argument, verb, w);
+						if(sr.argument != null)
+							sentence.addSemanticRole(sr.argument, verb, w);
 					}
 					
 				}

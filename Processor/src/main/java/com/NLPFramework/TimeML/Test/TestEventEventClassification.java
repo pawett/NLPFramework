@@ -61,10 +61,10 @@ public class TestEventEventClassification extends TestTMLBase implements IAction
 			{	
 				Logger.WriteDebug(fileName);
 				TokenizedFile kFileTemp = featuresTestKeyFiles.get(fileName);
-				TimeMLFile kTmlFile = new TimeMLFile(kFileTemp);
+				TimeMLFile kTmlFile = (TimeMLFile)kFileTemp;// new TimeMLFile(kFileTemp);
 				
 				TokenizedFile fTemp = annotatedTestFiles.get(fileName);
-				TimeMLFile f = new TimeMLFile(fTemp);
+				TimeMLFile f = (TimeMLFile)fTemp;
 
 				
 				strategy.getTemporalRelationProcessing().getMain_events().Test(f, modelDir.getAbsolutePath(),approach, "classification_e-e", f.getLanguage(), new EventEventRelationFormatter(), new EventEventRelationAnnotatedFormatter());

@@ -52,8 +52,9 @@ public class TimeLine
 		contextEvent.stem = ji.what.word.word;
 		contextEvent.documentId = fileId;
 		contextEvent.sentenceNumber = ji.what.word.sentenceNumber;
+		contextEvent.word = ji.what.word;
 		
-		if(events.stream().anyMatch(e -> e.toString().equals(contextEvent.toString())))
+		if(events.stream().anyMatch(e -> e.word.equals(contextEvent.word)))
 		{
 			Logger.WriteDebug("ERROR!!");
 		}
@@ -88,8 +89,7 @@ public class TimeLine
 			
 			if(!entityMap.containsKey(ner.entityName))
 				entityMap.put(ner.entityName, new EventTime());
-			EventTime et = new EventTime();
-			et.addEventTime(date, contextEvent);
+
 			entityMap.get(ner.entityName).addEventTime(date, contextEvent);
 		}
 			

@@ -84,6 +84,9 @@ public class FileHelper {
 	{
 		BufferedWriter output;
 		try {
+			int posLastPath = filePath.lastIndexOf(File.separator);
+			String path = filePath.substring(0, posLastPath);
+			createDir(path);
 			File plain = new File(filePath);
 			output = new BufferedWriter(new FileWriter(plain.getAbsolutePath()));
 
@@ -104,6 +107,14 @@ public class FileHelper {
 			return false;
 		}
 		return true;
+	}
+	
+	public static void createDir(String path)
+	{
+		File newdir = new File(path);
+		if (!newdir.exists() || !newdir.isDirectory()) {
+            newdir.mkdir();
+        }
 	}
 	
 	public static String saveFilesAsBinary(TokenizedFileHashtable files, String path)

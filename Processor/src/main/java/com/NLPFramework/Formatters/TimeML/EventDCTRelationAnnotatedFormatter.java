@@ -26,7 +26,7 @@ public class EventDCTRelationAnnotatedFormatter extends EventDCTRelationFormatte
 		StringBuilder sb = new StringBuilder();
 		
 		
-		for(Object tlObject : file.annotations.get(TimeLink.class))
+		for(Object tlObject : file.getAnnotations(TimeLink.class))
 		{
 			String annotation = annotateTimeLink(file, tlObject);
 			if(annotation != null)
@@ -77,9 +77,9 @@ public class EventDCTRelationAnnotatedFormatter extends EventDCTRelationFormatte
 		String lId = val[1];
 		int lastValuePos =  val.length - 1;
 		TimeLinkRelationType type = TimeLinkRelationType.valueOf(val[lastValuePos]);
-		if(file.annotations.get(TimeLink.class) != null)
+		if(file.getAnnotations(TimeLink.class) != null)
 			{
-				for(Object annotation : file.annotations.get(TimeLink.class))
+				for(Object annotation : file.getAnnotations(TimeLink.class))
 				{
 					TimeLink tl = (TimeLink) annotation;
 					if(tl.id.equalsIgnoreCase(lId))

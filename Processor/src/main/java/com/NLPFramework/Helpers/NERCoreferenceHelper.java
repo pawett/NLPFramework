@@ -20,9 +20,9 @@ public class NERCoreferenceHelper
 {
 	public static void addCoreference(TimeMLFile file, EntityMapper<NER> map)
 	{
-		if(file.annotations.get(NERCoreference.class) != null)
+		if(file.getAnnotations(NERCoreference.class) != null)
 		{
-			Optional<Annotation> nerCorefOpt = file.annotations.get(NERCoreference.class).stream().filter(ann -> ((NERCoreference)ann).mainCoref.element.entityName.toLowerCase().equals(map.element.entityName.toLowerCase())).findFirst();
+			Optional<Annotation> nerCorefOpt = file.getAnnotations(NERCoreference.class).stream().filter(ann -> ((NERCoreference)ann).mainCoref.element.entityName.toLowerCase().equals(map.element.entityName.toLowerCase())).findFirst();
 
 			if(nerCorefOpt.isPresent())
 			{
@@ -43,7 +43,7 @@ public class NERCoreferenceHelper
 	
 	public static NER getMainNERFromWord(TimeMLFile file, Word w)
 	{
-		LinkedList<Annotation> mainCorefNerAnnotation = file.annotations.get(NERCoreference.class) == null ? null : file.annotations.get(NERCoreference.class);
+		LinkedList<Annotation> mainCorefNerAnnotation = file.getAnnotations(NERCoreference.class) == null ? null : file.getAnnotations(NERCoreference.class);
 		if(mainCorefNerAnnotation != null)
 		{
 			for(Annotation corefNerAnnotation : mainCorefNerAnnotation)
@@ -84,7 +84,7 @@ public class NERCoreferenceHelper
 				NER currentCoreferenceNer = (NER)mainCorefNerAnnotation.element;
 				
 				if(nersInCoreference.get(numOfRelatedEntities).size() > 0
-						&& nersInCoreference.get(numOfRelatedEntities).get(0).type.equals(currentCoreferenceNer.type)
+						&& nersInCoreference.get(numOfRelatedEntities).get(0).type != null && currentCoreferenceNer.type != null && nersInCoreference.get(numOfRelatedEntities).get(0).type.equals(currentCoreferenceNer.type)
 						&& !nersInCoreference.get(numOfRelatedEntities).get(0).entityName.contains(currentCoreferenceNer.entityName))
 				{
 					NER existingNER = nersInCoreference.get(numOfRelatedEntities).get(0);
@@ -118,7 +118,7 @@ public class NERCoreferenceHelper
 	public static Coreference getMainReference(TimeMLFile file, Word w)
 	{
 		Coreference mainCoreference = null;
-		LinkedList<Annotation> corefs = file.annotations.get(Coreference.class);
+		LinkedList<Annotation> corefs = file.getAnnotations(Coreference.class);
 		if(corefs == null)
 			return null;
 		for(Annotation annotation : corefs)

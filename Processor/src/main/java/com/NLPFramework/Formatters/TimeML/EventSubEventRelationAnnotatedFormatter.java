@@ -18,7 +18,7 @@ public class EventSubEventRelationAnnotatedFormatter extends EventSubEventRelati
 	{
 		StringBuilder sb = new StringBuilder();
 
-		for(Object tlObject : file.annotations.get(TimeLink.class))
+		for(Object tlObject : file.getAnnotations(TimeLink.class))
 		{
 			String annotation = annotateTimeLink(file, tlObject);
 			if(annotation != null)
@@ -62,9 +62,9 @@ public class EventSubEventRelationAnnotatedFormatter extends EventSubEventRelati
 		String[] val = values.split("\\|");
 		String lId = val[1];
 		TimeLinkRelationType type = TimeLinkRelationType.valueOf(val[17]);
-		if(file.annotations.get(TimeLink.class) != null)
+		if(file.getAnnotations(TimeLink.class) != null)
 		{
-			for(Object annotation : file.annotations.get(TimeLink.class))
+			for(Object annotation : file.getAnnotations(TimeLink.class))
 			{
 				TimeLink tl = (TimeLink) annotation;
 				if(tl.id.equalsIgnoreCase(lId))

@@ -272,43 +272,32 @@ public class TMLExtractor {
 		StringBuilder sb  = new StringBuilder();
 		//printChildren(children, sb);
 		
+		TokenizedFile featuresFile = null;
 		String plainFilePath = tmlFilePath + ".plain";
 		String fullText = null;
 		NodeList sentences = doc.getElementsByTagName("s");
 		if(sentences != null && sentences.getLength() > 0)
 		{
-			StringBuilder sbDocument = new StringBuilder();
-			for(int i = 0; i< sentences.getLength() ; i++)
-			{
-				Node sentenceNode = sentences.item(i);
-				String fullLine = sentenceNode.getTextContent();
-				fullLine = FileHelper.formatText(fullLine);
-				if(!fullLine.endsWith(".") && !fullLine.endsWith("\""))
-				{
-					fullLine = fullLine + " .";
-					sentenceNode.getLastChild().setNodeValue(sentenceNode.getLastChild().getNodeValue()+ ".");
-				}
-				sbDocument.append(fullLine+" ");
-				sb.append(System.lineSeparator());
-
-			}
-			fullText = sbDocument.toString();
+			featuresFile = extractSentences(tmlFilePath, sb, sentences);
 		}else
+		{
 			fullText = text.getTextContent();
+			fullText = FileHelper.formatText(fullText);
+			
+			//FileHelper.createFileFromText(sb.toString(), plainFilePath);
+			FileHelper.createFileFromText(fullText, plainFilePath);
+			
+			NLPProcessor nlpProcessor = new NLPProcessor(plainFilePath, null);
+			/*ArrayList<INLPAction> actions = new ArrayList<>();
+			actions.add(new ActionSentenceSplitterCoreNLP(plainFilePath));
+			actions.add(new ActionTokenizerCoreNLP());
+			TokenizedFile featuresFile = nlpProcessor.execute(actions);*/
+			featuresFile = StanfordSynt.run(plainFilePath, Configuration.getLanguage());
+			featuresFile.setOriginalText(fullText);
+		}
+			
 		
-		fullText = FileHelper.formatText(fullText);
 		
-		//FileHelper.createFileFromText(sb.toString(), plainFilePath);
-		FileHelper.createFileFromText(fullText, plainFilePath);
-		
-		NLPProcessor nlpProcessor = new NLPProcessor(plainFilePath, null);
-		/*ArrayList<INLPAction> actions = new ArrayList<>();
-		actions.add(new ActionSentenceSplitterCoreNLP(plainFilePath));
-		actions.add(new ActionTokenizerCoreNLP());
-		TokenizedFile featuresFile = nlpProcessor.execute(actions);*/
-		
-		TokenizedFile featuresFile = nlpProcessor.getFeatures();
-		featuresFile.setOriginalText(fullText);
 		TimeMLFile tmlFile = new TimeMLFile(featuresFile);
 		NodeList timexes = doc.getElementsByTagName("TIMEX3");
 		setDCT(tmlFile, timexes);
@@ -330,6 +319,34 @@ public class TMLExtractor {
 		getEntitiesFromText(tmlFile, flattenedNodes);
 		
 		return tmlFile;
+	}
+
+
+	private static TokenizedFile extractSentences(String tmlFilePath, StringBuilder sb, NodeList sentences) {
+		String fullText;
+		TokenizedFile tokFile = new TokenizedFile(Configuration.getLanguage(), tmlFilePath);
+		StringBuilder sbDocument = new StringBuilder();
+		for(int i = 0; i< sentences.getLength() ; i++)
+		{
+			Node sentenceNode = sentences.item(i);
+			String fullLine = sentenceNode.getTextContent();
+			fullLine = FileHelper.formatText(fullLine);
+			if(!fullLine.endsWith(".") && !fullLine.endsWith("\""))
+			{
+				fullLine = fullLine + " .";
+				sentenceNode.getLastChild().setNodeValue(sentenceNode.getLastChild().getNodeValue()+ ".");
+			}
+			sbDocument.append(fullLine+" ");
+			sb.append(System.lineSeparator());
+			TokenizedSentence sentence = new TokenizedSentence();
+			sentence.originalText = fullLine;
+			tokFile.add(sentence);
+		}
+		
+		fullText = sbDocument.toString();
+		
+		tokFile = StanfordSynt.run(tokFile);
+		return tokFile;
 	}
 
 	private static int getEntitiesFromText(TimeMLFile featuresFile,

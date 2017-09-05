@@ -52,7 +52,7 @@ public class FeaturesEventAnnotatedFormatter  extends FeaturesFormatter implemen
 				
 				String IOB = "-";
 				currentWordSb = new StringBuilder();
-				if(w.semanticRoles != null && w.semanticRoles.get(verbPos) != null && w.semanticRoles.get(verbPos).argument != null)
+				if(w.semanticRoles != null && w.semanticRoles.size() > verbPos && w.semanticRoles.get(verbPos) != null && w.semanticRoles.get(verbPos).argument != null)
 				{
 					currentWordSb.append(super.toString(w, v, w.semanticRoles.get(verbPos)));
 

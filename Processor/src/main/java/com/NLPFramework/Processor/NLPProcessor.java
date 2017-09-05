@@ -127,6 +127,7 @@ public class NLPProcessor
 	
 	public void setIds()
 	{
+		Logger.WriteDebug("Setting IDs");
 		int currentEventCount = 1;
 		int currentTimexCount = 1;
 		for(TokenizedSentence sentence : file)
@@ -200,7 +201,7 @@ public class NLPProcessor
 		return file;
 	}
 	
-	public TokenizedFile setSemanticFeatures(ITextProcessor processor)
+	public TokenizedFile setSemanticFeatures()
 	{
 		ActionSemanticParserSenna sennaSRL = new ActionSemanticParserSenna();
 		sennaSRL.execute(file);
@@ -209,15 +210,18 @@ public class NLPProcessor
 	}
 	
 	
-	public TokenizedFile getFeatures() throws Exception
+	
+	
+	
+	public TokenizedFile setFeatures() throws Exception
 	{		
 		IFeatureExtractorStrategy featureExtractor = null;
 		
 		switch(Configuration.getLanguage())
 		{
 		case EN:
-			file = new StanfordSynt().run(originalFile.getAbsolutePath(), Configuration.getLanguage());
-			file = setSemanticFeatures(new Senna());
+			//file = StanfordSynt.run(originalFile.getAbsolutePath(), Configuration.getLanguage());
+			//file = setSemanticFeatures();
 			//ActionCoreferenceCoreNLP sem = new ActionCoreferenceCoreNLP();
 			//sem.execute(file);
 			featureExtractor = new FeatureExtractorEnglish();
@@ -241,13 +245,18 @@ public class NLPProcessor
 	{
 		Logger.WriteDebug("Recognizing TIMEX3s");
 		
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
-		String dctFile = sdf.format(new Date());
-		Timex3 dctTimex = ((TimeMLFile)file).getDCT();
-		Date dct = dctTimex != null ? DateTime.parse(dctTimex.value).toDate() : DateTime.parse(dctFile).toDate();
-		TokenFileFormatter formatter = new TokenFileFormatter(file);
-		formatter.updateFromExternalTool(new StanfordNER(dct));
-		
+		try
+		{
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+			String dctFile = sdf.format(new Date());
+			Timex3 dctTimex = ((TimeMLFile)file).getDCT();
+			Date dct = dctTimex != null ? DateTime.parse(dctTimex.value).toDate() : DateTime.parse(dctFile).toDate();
+			TokenFileFormatter formatter = new TokenFileFormatter(file);
+			formatter.updateFromExternalTool(new StanfordNER(dct));
+		}catch(Exception ex)
+		{
+			Logger.WriteError("Error Recognizing timex3", ex);
+		}
 	/*	method.getTimexProcessing().getRecognition().Test(file, modelsPath, approach,"rec_timex", language.toString(), new TempEval2FeaturesFormatter(), new TempEval2FeaturesAnnotated());
 		
 		file.setType(FilesType.TempEval2_features_annotatedWith);
@@ -352,6 +361,7 @@ public class NLPProcessor
 	
 	public void setMakeInstancesFromEvents()
 	{
+		Logger.WriteDebug("Setting MAKEINSTANCES");
 		TimeMLFile timeFeatures = (TimeMLFile)file;
 		tml = new TimeML(timeFeatures);
 
@@ -380,7 +390,7 @@ public class NLPProcessor
 		MakeInstance previousSentenceMainEvent = null;
 		MakeInstance currentSentenceMainEvent = null;
 		
-		if(timeFeatures.annotations.get(MakeInstance.class) == null)
+		if(timeFeatures.getAnnotations(MakeInstance.class) == null)
 			setMakeInstancesFromEvents();
 		
 		for(TokenizedSentence sentence : timeFeatures)

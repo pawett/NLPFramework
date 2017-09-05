@@ -9,6 +9,7 @@ import com.NLPFramework.Crosscutting.Logger;
 import com.NLPFramework.Domain.Annotation;
 import com.NLPFramework.Domain.TokenizedSentence;
 import com.NLPFramework.Domain.Word;
+import com.NLPFramework.TimeML.Domain.EntityMapper;
 import com.NLPFramework.TimeML.Domain.EventAspect;
 import com.NLPFramework.TimeML.Domain.EventTense;
 import com.NLPFramework.TimeML.Domain.MakeInstance;
@@ -20,7 +21,6 @@ import com.NLPFramework.TimeML.Domain.Timex3Date;
 import com.NLPFramework.TimeML.Domain.Timex3Duration;
 import com.NLPFramework.TimeML.Domain.Timex3Set;
 import com.NLPFramework.TimeML.Domain.Timex3Time;
-import org.apache.commons.lang3.StringUtils;
 
 public class TimeMLHelper {
 
@@ -48,9 +48,10 @@ public class TimeMLHelper {
 				 return TimeLinkRelationType.OVERLAP_OR_AFTER;
 			 case INCLUDES:
 			 case IS_INCLUDED:
-				 return TimeLinkRelationType.OVERLAP;	
+				// return TimeLinkRelationType.INCLUDES;	
 			 case DURING:
 			 case DURING_INV:
+				// return TimeLinkRelationType.DURING;
 			 case SIMULTANEOUS:		 
 				 return TimeLinkRelationType.OVERLAP;
 			 case IDENTITY:
@@ -75,9 +76,10 @@ public class TimeMLHelper {
 				 return TimeLinkRelationType.BEFORE_OR_OVERLAP;
 			 case INCLUDES:
 			 case IS_INCLUDED:
-				 return TimeLinkRelationType.OVERLAP;	
+				// return TimeLinkRelationType.INCLUDES;	
 			 case DURING:
 			 case DURING_INV:
+				// return TimeLinkRelationType.DURING;	
 			 case SIMULTANEOUS:		 
 				 return TimeLinkRelationType.OVERLAP;
 			 case IDENTITY:
@@ -114,7 +116,7 @@ public class TimeMLHelper {
 	 {
 		 
 		 Timex3 relatedTimex = null;
-		 for(Object tlObject : file.annotations.get(TimeLink.class))
+		 for(Object tlObject : file.getAnnotations(TimeLink.class))
 		 {	
 			 TimeLink tl = (TimeLink)tlObject;
 			 Word tlDepVerb = null;
@@ -320,44 +322,52 @@ public class TimeMLHelper {
 		 for(TokenizedSentence sentence : file)
 		 {
 
-			 if(sentence.annotations.get(Timex3.class) != null)
-			 {		
-				 if(sentence.annotations.get(Timex3.class).keySet().contains(w))
-					 return (Timex3) sentence.annotations.get(Timex3.class).get(w).element;
-			 }
-			 if(sentence.annotations.get(Timex3Date.class) != null)
-			 {
-				 if(sentence.annotations.get(Timex3Date.class).keySet().contains(w))
-					 return (Timex3) sentence.annotations.get(Timex3Date.class).get(w).element;
-			 }
-
-			 if(sentence.annotations.get(Timex3Time.class) != null)
-			 {
-				 if(sentence.annotations.get(Timex3Time.class).keySet().contains(w))
-					 return (Timex3) sentence.annotations.get(Timex3Time.class).get(w).element;
-			 }
-
-			 if(sentence.annotations.get(Timex3Duration.class) != null)
-			 {
-				 if(sentence.annotations.get(Timex3Duration.class).keySet().contains(w))
-					 return (Timex3) sentence.annotations.get(Timex3Duration.class).get(w).element;
-			 }
-
-			 if(sentence.annotations.get(Timex3Set.class) != null)
-			 {
-				 if(sentence.annotations.get(Timex3Set.class).keySet().contains(w))
-					 return (Timex3) sentence.annotations.get(Timex3Set.class).get(w).element;
-			 }
+			EntityMapper<Annotation> timexAnnotation = getTimexFromSentence(w, sentence);
+			if(timexAnnotation != null)
+				time = (Timex3) timexAnnotation.element;
 			
 		 }
-		 return null;
+		 return time;
 	 }
+
+	public static EntityMapper<Annotation> getTimexFromSentence(Word w, TokenizedSentence sentence) {
+		if(sentence.annotations.get(Timex3.class) != null)
+		 {		
+			 if(sentence.annotations.get(Timex3.class).keySet().contains(w))
+				 return sentence.annotations.get(Timex3.class).get(w);
+		 }
+		 if(sentence.annotations.get(Timex3Date.class) != null)
+		 {
+			 if(sentence.annotations.get(Timex3Date.class).keySet().contains(w))
+				 return sentence.annotations.get(Timex3Date.class).get(w);
+		 }
+
+		 if(sentence.annotations.get(Timex3Time.class) != null)
+		 {
+			 if(sentence.annotations.get(Timex3Time.class).keySet().contains(w))
+				 return sentence.annotations.get(Timex3Time.class).get(w);
+		 }
+
+		 if(sentence.annotations.get(Timex3Duration.class) != null)
+		 {
+			 if(sentence.annotations.get(Timex3Duration.class).keySet().contains(w))
+				 return sentence.annotations.get(Timex3Duration.class).get(w);
+		 }
+
+		 if(sentence.annotations.get(Timex3Set.class) != null)
+		 {
+			 if(sentence.annotations.get(Timex3Set.class).keySet().contains(w))
+				 return sentence.annotations.get(Timex3Set.class).get(w);
+		 }
+		 
+		 return null;
+	}
 	 
 	 public static MakeInstance getMakeInstanceFromFile(TimeMLFile file, Word w)
 	 {
 		 if(w == null)
 			 return null;
-		 Optional<Annotation> mkPrevious = file.annotations.get(MakeInstance.class).stream()
+		 Optional<Annotation> mkPrevious = file.getAnnotations(MakeInstance.class).stream()
 				 .filter(m -> ((MakeInstance) m).event.word.equals(w))
 				 .findFirst();
 		 if(mkPrevious.isPresent())
@@ -611,7 +621,7 @@ public class TimeMLHelper {
 		public static ArrayList<TimeLink> getTimeLinksForTimex(TimeMLFile file, Timex3 timex) 
 		{
 			ArrayList<TimeLink> relatedTimeLinks = new ArrayList<>();
-			LinkedList<Annotation> timeLinks = file.annotations.get(TimeLink.class);
+			LinkedList<Annotation> timeLinks = file.getAnnotations(TimeLink.class);
 			for(Annotation annotation : timeLinks)
 			{
 				TimeLink tl = (TimeLink) annotation;
@@ -626,7 +636,7 @@ public class TimeMLHelper {
 		public static ArrayList<TimeLink> getTimeLinksForTimexAndMakeInstance(TimeMLFile file, Timex3 timex, MakeInstance mk) 
 		{
 			ArrayList<TimeLink> relatedTimeLinks = new ArrayList<>();
-			LinkedList<Annotation> timeLinks = file.annotations.get(TimeLink.class);
+			LinkedList<Annotation> timeLinks = file.getAnnotations(TimeLink.class);
 			for(Annotation annotation : timeLinks)
 			{
 				TimeLink tl = (TimeLink) annotation;
@@ -641,7 +651,7 @@ public class TimeMLHelper {
 		public static ArrayList<TimeLink> getTimeLinksForMakeInstance(TimeMLFile file, MakeInstance makeInstance) 
 		{
 			ArrayList<TimeLink> relatedTimeLinks = new ArrayList<>();
-			LinkedList<Annotation> timeLinks = file.annotations.get(TimeLink.class);
+			LinkedList<Annotation> timeLinks = file.getAnnotations(TimeLink.class);
 			for(Annotation annotation : timeLinks)
 			{
 				TimeLink tl = (TimeLink) annotation;
@@ -656,7 +666,7 @@ public class TimeMLHelper {
 		public static ArrayList<TimeLink> getAllT0RelatedTimeLinks(TimeMLFile file) 
 		{
 			ArrayList<TimeLink> relatedTimeLinks = new ArrayList<>();
-			LinkedList<Annotation> timeLinks = file.annotations.get(TimeLink.class);
+			LinkedList<Annotation> timeLinks = file.getAnnotations(TimeLink.class);
 			for(Annotation annotation : timeLinks)
 			{
 				TimeLink tl = (TimeLink) annotation;

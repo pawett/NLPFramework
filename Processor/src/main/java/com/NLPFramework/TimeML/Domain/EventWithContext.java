@@ -8,6 +8,6 @@ public class EventWithContext extends Event
 	
 	public String toString()
 	{
-		return documentId + "-" + (sentenceNumber - 1) + "-" + stem;
+		return documentId + "-" + (sentenceNumber) + "-" + stem.replaceAll("-", "_");
 	}
 }

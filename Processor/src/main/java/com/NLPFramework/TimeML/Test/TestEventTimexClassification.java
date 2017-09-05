@@ -59,14 +59,14 @@ public class TestEventTimexClassification extends TestTMLBase implements IAction
 			{	
 				Logger.WriteDebug(fileName);
 				TokenizedFile kFileTemp = featuresTestKeyFiles.get(fileName);
-				TimeMLFile kTmlFile = new TimeMLFile(kFileTemp);
+				TimeMLFile kTmlFile = (TimeMLFile)(kFileTemp);
 				
 				TokenizedFile fTemp = annotatedTestFiles.get(fileName);
-				TimeMLFile f = new TimeMLFile(fTemp);
+				TimeMLFile f = (TimeMLFile)(fTemp);
 
-				if(f.annotations.get(TimeLink.class) != null)
+				if(f.getAnnotations(TimeLink.class) != null)
 				{
-					for(Object annotation : f.annotations.get(TimeLink.class))
+					for(Object annotation : f.getAnnotations(TimeLink.class))
 					{
 						TimeLink tl = (TimeLink) annotation;
 						tl.type = null;

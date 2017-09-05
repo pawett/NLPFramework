@@ -453,14 +453,14 @@ public class TimeML {
 
 			sb.append("</TEXT>");
 
-			for(Annotation mk : file.annotations.get(MakeInstance.class))
+			for(Annotation mk : file.getAnnotations(MakeInstance.class))
 			{
 				sb.append(printMakeInstances((MakeInstance)mk));
 				sb.append(System.lineSeparator());
 			}
 
 
-			for(Annotation tl : file.annotations.get(TimeLink.class))
+			for(Annotation tl : file.getAnnotations(TimeLink.class))
 			{
 				sb.append(printTimeLink((TimeLink)tl));
 				sb.append(System.lineSeparator());

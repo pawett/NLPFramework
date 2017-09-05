@@ -110,7 +110,7 @@ public class Annotator {
 			NLPProcessor processor = new NLPProcessor(nlpfile.getAbsolutePath(), method);
 			
 			//TokenizedFile features  = PlainTokenFeatures.getFeatures(nlpfile, lang, 1, false, approach);
-			TokenizedFile features  = processor.getFeatures();
+			TokenizedFile features  = processor.setFeatures();
 					//
 						
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
@@ -156,7 +156,7 @@ public class Annotator {
 				processor.RecognizeTLINKS();
 			}
 			
-			TimeMLFile timeMLFile = new TimeMLFile(processor.getFile());
+			TimeMLFile timeMLFile = (TimeMLFile)(processor.getFile());
 			ret = processor.getTimeMLFile().toTML(timeMLFile);
 			
 			

@@ -86,7 +86,7 @@ public class FeatureExtractorSpanish implements IFeatureExtractorStrategy {
 
 		if (token.pos.matches("(V|N).*")) 
 		{	
-			WNInterface wn = new WNInterface(Language.EN.toString().toLowerCase());
+			WNInterface wn = new WNInterface(Language.ES);
 			String hypersString = wn.getHypers(token.word, token.pos);
 			if(hypersString == null || hypersString.isEmpty())
 				token.wn = "-";

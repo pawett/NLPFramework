@@ -27,7 +27,7 @@ public class FeatureExtractorEnglish implements IFeatureExtractorStrategy {
     		
     		
     		//  while ((line = pipesreader.readLine()) != null) 
-    		file.stream().forEach((sentenceInFile) -> 
+    		for(TokenizedSentence sentenceInFile : file)
     		{
     			//Sentence stndSentence = new Sentence (sentenceInFile.toOriginalText());
     			int phraId = 0;
@@ -49,7 +49,7 @@ public class FeatureExtractorEnglish implements IFeatureExtractorStrategy {
 						e.printStackTrace();
 					}
     			}   		
-    		});
+    		}
 
     	} catch (Exception e) {
     		Logger.WriteError("Errors found (TIMEE):\n\t", e);
@@ -60,14 +60,16 @@ public class FeatureExtractorEnglish implements IFeatureExtractorStrategy {
 	}
 
 
-	private void processVerbs(TokenizedFile file) {
-		file.stream().forEach((sentenceInFile) -> 
+	private void processVerbs(TokenizedFile file) 
+	{
+		for(TokenizedSentence sentenceInFile : file) 
 		{
 			LinkedList<Word> verbPhrase = new LinkedList<>();
 			String currentSentence = "";
 			String polarity = "positive";
 			for(Word token : sentenceInFile)             
 			{	
+				
 				if(token.lemma.equalsIgnoreCase("have") && token.next != null && token.next.lemma.equalsIgnoreCase("to"))
 				 {
 					token.isVerb = false;
@@ -86,7 +88,7 @@ public class FeatureExtractorEnglish implements IFeatureExtractorStrategy {
 				if (token.pos.matches("(V|N|J).*")) 
 				{	
 					
-					WNInterface wn = new WNInterface(Language.EN.toString().toLowerCase());
+					WNInterface wn = new WNInterface(Language.EN);
 					String hypersString = wn.getHypers(token.word, token.pos);
 					if(hypersString == null || hypersString.isEmpty())
 						token.wn = "-";
@@ -147,7 +149,7 @@ public class FeatureExtractorEnglish implements IFeatureExtractorStrategy {
 				}
 			} 
 			
-		});
+		}
 	}
 
 

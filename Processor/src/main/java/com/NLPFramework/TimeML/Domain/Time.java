@@ -6,6 +6,7 @@ import com.NLPFramework.Crosscutting.Logger;
 
 public class Time implements Comparable<Time> 
 {
+	public static String NoDATA = "XXXX-XX-XX";
 	public OptionalInt year = null;
 	public OptionalInt month = null;
 	public OptionalInt day = null;
@@ -23,14 +24,43 @@ public class Time implements Comparable<Time>
 					year = OptionalInt.of(Integer.valueOf(dateValues[0]));
 					if(dateValues.length > 1 && !dateValues[1].equalsIgnoreCase("XX"))
 					{
-						month = OptionalInt.of(Integer.valueOf(dateValues[1]));
-
-						if(dateValues.length > 2 && !dateValues[2].equalsIgnoreCase("XXXX"))
-							day = OptionalInt.of(Integer.valueOf(dateValues[2]));
+						String monthValue = dateValues[1];
+						if(monthValue.startsWith("Q"))
+						{
+							monthValue = monthValue.replaceAll("Q", "");
+							int quarter = Integer.valueOf(monthValue);
+							month = OptionalInt.of(((quarter-1) * 3) + 1);
+							
+							day = OptionalInt.of(1);
+						}else if( monthValue.startsWith("**"))
+						{
+							monthValue = dateValues[2];
+							int quarter = Integer.valueOf(monthValue);
+							month = OptionalInt.of(((quarter-1) * 3) + 1);
+							
+							day = OptionalInt.of(1);
+						}
+						else
+						{
+							month = OptionalInt.of(Integer.valueOf(dateValues[1]));
+	
+							if(dateValues.length > 2 && !dateValues[2].equalsIgnoreCase("XXXX"))
+							{
+								String dayValue = dateValues[2].split("T")[0];
+								day = OptionalInt.of(Integer.valueOf(dayValue));
+							}
+						}
 					}
 				}
-			}catch(Exception ex){Logger.WriteDebug("Wrong values for date " + timex.value);}
+			}catch(Exception ex)
+			{
+				Logger.WriteDebug("Wrong values for date " + timex.value);}
 		}
+	}
+	
+	public boolean hasNoData()
+	{
+		return year == null;
 	}
 	
 	public String toString()
@@ -47,6 +77,7 @@ public class Time implements Comparable<Time>
 			return sb.toString();
 		}
 		
+				
 		sb.append("-" + ((month.getAsInt() < 10) ? "0"+month.getAsInt() : month.getAsInt()));
 		
 		if(day == null)
@@ -70,12 +101,15 @@ public class Time implements Comparable<Time>
 			thisDate = thisDate + day.getAsInt();
 		
 		int compareDate = 100000000;
-		if(time2.year != null)
-			compareDate = compareDate + (time2.year.getAsInt() * 10000);
-		if(time2.month != null)
-			compareDate = compareDate + (time2.month.getAsInt() * 100);
-		if(time2.day != null)
-			compareDate = compareDate + time2.day.getAsInt();
+		if(time2 != null)
+		{
+			if(time2.year != null)
+				compareDate = compareDate + (time2.year.getAsInt() * 10000);
+			if(time2.month != null)
+				compareDate = compareDate + (time2.month.getAsInt() * 100);
+			if(time2.day != null)
+				compareDate = compareDate + time2.day.getAsInt();
+		}
 		
 		/*if(!year.isPresent() && !time2.year.isPresent()
 				&& !month.isPresent() && !time2.month.isPresent()

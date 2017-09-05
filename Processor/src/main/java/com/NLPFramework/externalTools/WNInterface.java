@@ -6,10 +6,23 @@ package com.NLPFramework.externalTools;
 //import java.net.URL;
 //import edu.smu.tspell.wordnet.*;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecuteResultHandler;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteException;
+import org.apache.commons.exec.Executor;
+import org.apache.commons.exec.PumpStreamHandler;
+
+import com.NLPFramework.Crosscutting.Logger;
+import com.NLPFramework.Domain.Language;
+import com.NLPFramework.Domain.Word;
 import com.NLPFramework.Helpers.FileUtils;
 
 /**
@@ -25,8 +38,8 @@ public class WNInterface {
     public static String wn_it_time = FileUtils.getApplicationPath() + "program-data/WN/wn_it_time.txt";
 //    IDictionary dict;
 //    WordNetDatabase database;
-private String language;
-    public  WNInterface(String language) {
+private Language language;
+    public  WNInterface(Language language) {
         try {
         	this.language = language;
             // construct the dictionary object and open it
@@ -47,63 +60,142 @@ private String language;
     
     public String getHypers(String word, String pos)
     {
-    	switch(language.toUpperCase())
+    	switch(language)
     	{
-    	case "ES":
+    	case ES:
     		return getHypersHACKES2(word, pos);
-    	case "EN":
+    	case EN:
     	default:
     		return getHypersHACK(word, pos);
     	}
     }
+    
+    private String executeCommand(String[] psCmd)
+    {
+    	String s = "entity";
+        
+    	try {
+           
+    	 Process p = Runtime.getRuntime().exec(psCmd);
+         
 
-    public String getHypersHACK(String word, String pos) {
+         BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+         BufferedReader stdError = new BufferedReader(new
+                        InputStreamReader(p.getErrorStream()));
+
+         while ((s = stdError.readLine()) != null) {
+             return null;
+         }
+         // read the output from the command
+         //System.out.println("Here is the standard output of the command:\n");
+         try{
+         while ((s = stdInput.readLine()) != null) {
+             break;
+         }
+         }catch(Exception ex)
+         {
+         	return null;
+         }
+         stdInput.close();
+         if (p != null) {
+             p.getInputStream().close();
+             p.getOutputStream().close();
+             p.getErrorStream().close();
+             p.destroy();
+         }
+         
+ 	 } catch (Exception e) {
+          System.err.println("Errors found (" + this.getClass().getSimpleName() + "):\n\t" + e.toString());
+          if (System.getProperty("DEBUG") != null && System.getProperty("DEBUG").equalsIgnoreCase("true")) {
+              e.printStackTrace(System.err);
+              System.exit(1);
+          }
+          return null;
+      }
+      return s;
+    }
+    
+    public boolean isWordSynonimOf(Word word, Word anotherWord)
+    {
+    	return word.lemma.equals(anotherWord.lemma) || getSynonims(anotherWord).contains(word.lemma);
+    }
+    
+    public ArrayList<String> getSynonims(Word word)
+    {
+    	String lemma = word.lemma;
+    	String minipos = word.pos.substring(0, 1).toLowerCase();
+    	
+    	ArrayList<String> wordSynonims = new ArrayList<>();
+        	
+    	CommandLine commandLine = new CommandLine("/bin/sh");
+    	commandLine.addArgument("-c");
+    	commandLine.addArgument("wn " + lemma + " -syns" + minipos, false); // false is important to prevent commons-exec from acting stupid
+    	
+    	String returnedResult = executeProcess(commandLine);
+
+    	String[] lines =returnedResult.split(System.lineSeparator());
+    	int numSenses = 1;
+    	for(String line : lines)
+    	{
+    		if(line.startsWith("Sense"))
+    			numSenses++;
+    		if(line.contains("=>"))
+    		{
+    			line = line.replace("=>", "").trim();
+    			String[] synonims = line.split(",");
+    			for(String synonim : synonims)
+    			{
+    				if(!synonim.isEmpty() && !wordSynonims.contains(synonim))
+    					wordSynonims.add(synonim.trim());
+    			}
+    		}
+    		if(numSenses > 5)
+    			continue;
+    	}
+    	return wordSynonims;
+    }
+    
+    private String executeProcess(CommandLine commandLine)
+    {
+    	
+    	ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    	DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler(); 
+    	
+    	PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
+        
+    	Executor executor = new DefaultExecutor();
+    	executor.setStreamHandler(streamHandler);
+    	try {
+			executor.execute(commandLine, resultHandler);
+			resultHandler.waitFor();
+			return outputStream.toString();
+		} catch (ExecuteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NumberFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	return null;
+    }
+
+    public String getHypersHACK(String word, String pos) 
+    {
         String s = "entity";
-        try {
+        
             String minipos = pos.substring(0, 1).toLowerCase(); // to treat not only nouns...
 
             String[] psCmd = {"sh", "-c", "echo \"" + word + "\" | " + FileUtils.getApplicationPath() + "program-data/wn.toplevel.pl -p " + minipos};
 
-            //System.err.println("command: "+psCmd[0]+psCmd[1]+psCmd[2]);
-
-            Process p = Runtime.getRuntime().exec(psCmd);
-            
-
-            BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-//            BufferedReader stdError = new BufferedReader(new
-            //               InputStreamReader(p.getErrorStream()));
-
-            // read the output from the command
-            //System.out.println("Here is the standard output of the command:\n");
-            while ((s = stdInput.readLine()) != null) {
-                break;
-            }
-            stdInput.close();
-            if (p != null) {
-                p.getInputStream().close();
-                p.getOutputStream().close();
-                p.getErrorStream().close();
-                p.destroy();
-            }
-
-            /*
-            // read any errors from the attempted command
-            System.out.println("Here is the standard error of the command (if any):\n");
-            while ((s = stdError.readLine()) != null) {
-            System.out.println(s);
-            }*/
-
-
-        } catch (Exception e) {
-            System.err.println("Errors found (" + this.getClass().getSimpleName() + "):\n\t" + e.toString());
-            if (System.getProperty("DEBUG") != null && System.getProperty("DEBUG").equalsIgnoreCase("true")) {
-                e.printStackTrace(System.err);
-                System.exit(1);
-            }
-            return null;
-        }
-        return s;
+            return executeCommand(psCmd);
     }
 
     /*   public String getHypers(
@@ -111,33 +203,12 @@ private String language;
     return getHypers(word, "NOUN");
     }*/
     public String getHypersHACKES(String word, String pos) {
-        String s = "entity";
-        try {
-            String minipos = pos.substring(0, 1).toLowerCase(); // to treat not only nouns...
-            // DEPRECATED
-            String[] psCmd = {"sh", "-c", "echo \"" + word + "\" | " + FileUtils.getApplicationPath() + "program-data/wn.toplevel.es.pl -p " + minipos};
-            Process p = Runtime.getRuntime().exec(psCmd);
-            
-            BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            while ((s = stdInput.readLine()) != null) {
-                break;
-            }
-            stdInput.close();
-                if(p!=null){
-                    p.getInputStream().close();
-                    p.getOutputStream().close();
-                    p.getErrorStream().close();
-                    p.destroy();
-                }
-        } catch (Exception e) {
-            System.err.println("Errors found (" + this.getClass().getSimpleName() + "):\n\t" + e.toString());
-            if (System.getProperty("DEBUG") != null && System.getProperty("DEBUG").equalsIgnoreCase("true")) {
-                e.printStackTrace(System.err);
-                System.exit(1);
-            }
-            return null;
-        }
-        return s;
+    	String s = "entity";
+
+    	String minipos = pos.substring(0, 1).toLowerCase(); // to treat not only nouns...
+    	// DEPRECATED
+    	String[] psCmd = {"sh", "-c", "echo \"" + word + "\" | " + FileUtils.getApplicationPath() + "program-data/wn.toplevel.es.pl -p " + minipos};
+    	return executeCommand(psCmd);
     }
 
     public String getHypersHACKES2(String word, String pos) {

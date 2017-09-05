@@ -2,7 +2,9 @@ package com.NLPFramework.Processor;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
+import com.NLPFramework.Crosscutting.Logger;
 import com.NLPFramework.Domain.Language;
 import com.NLPFramework.Domain.TokenizedFile;
 import com.NLPFramework.Domain.TokenizedFileHashtable;
@@ -41,6 +43,7 @@ public class TrainAction implements IActionExecutor
 	private String element;
 	private String task;
 	IMachineLearningMethod mlMethod;
+	private TokenizedFileHashtable files = new TokenizedFileHashtable();
 	
 	public TrainAction(String task, String element, File train_dir, String approach, Language lang, boolean rebuild_database, IMachineLearningMethod mlMethod)
 	{
@@ -60,12 +63,30 @@ public class TrainAction implements IActionExecutor
 		String featuresTrainDir = trainDir.getParent() + File.separator + trainDir.getName() + "_" + approach + "_features";
 		String featuresTrainFilePath = featuresTrainDir + File.separator + "features.obj";
 		// Check for features files (train/test)
+		
 		if (rebuildDataSet || !new File(featuresTrainFilePath).exists()) 
 		{
-			TokenizedFileHashtable trainFiles = TMLExtractor.getAnnotationsFromDir(trainDir);
-			String featuresDir = trainDir.getParent() + File.separator + trainDir.getName() + "_" + approach + "_features" + File.separator;
-			FileHelper.saveFilesAsBinary(trainFiles, featuresDir);
-		}
+			List<File> filesFromDir  = FileConverter.getTimeMLFilesFromDir(trainDir, approach);
+			filesFromDir.parallelStream().forEach((f) ->//for(File f : filesFromDir)
+			{
+				Logger.Write(f.getName());
+				TokenizedFile file = TMLExtractor.getAnnotationsFromTML(f.getAbsolutePath(), Configuration.getLanguage());
+
+				NLPProcessor processor = new NLPProcessor(file);	
+				ActionSemanticParserSenna sennaSRL = new ActionSemanticParserSenna();
+				sennaSRL.execute(file);
+				processor.setSemanticFeatures();
+				try {
+					processor.setFeatures();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				files.put(f.getName(), file);
+			});
+			FileHelper.saveFilesAsBinary(files, featuresTrainDir);
+		}else
+			files = FileHelper.getBinaryFiles(featuresTrainFilePath);
 		
 	
 		TrainBase trainModel = null;

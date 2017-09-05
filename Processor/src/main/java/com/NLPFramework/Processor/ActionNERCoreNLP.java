@@ -21,6 +21,7 @@ public class ActionNERCoreNLP extends ActionNERBase {
 	@Override
 	public TokenizedFile execute(TokenizedFile tokFile)
 	{
+		Logger.WriteDebug("Setting NER COREFERENCES");
 		StanfordCoreNLP pipeline = StanfordCoreSingleton.getPipeLine();		
 		
 		for(TokenizedSentence sentence : tokFile)

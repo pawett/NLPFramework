@@ -1,8 +1,11 @@
 package com.NLPFramework.Processor;
 
 import java.io.File;
+import java.util.List;
 
+import com.NLPFramework.Crosscutting.Logger;
 import com.NLPFramework.Domain.Language;
+import com.NLPFramework.Domain.TokenizedFile;
 import com.NLPFramework.Domain.TokenizedFileHashtable;
 import com.NLPFramework.Formatters.ISentenceFormatter;
 import com.NLPFramework.Formatters.TimeML.FeaturesEventAnnotatedFormatter;
@@ -34,6 +37,7 @@ public class TestAction implements IActionExecutor
 	private String element;
 	private String task;
 	IMachineLearningMethod mlMethod;
+	private TokenizedFileHashtable files = new TokenizedFileHashtable();
 	
 	public TestAction(String task, String element, File test_dir, String approach, Language lang, boolean rebuild_database, IMachineLearningMethod mlMethod)
 	{
@@ -53,12 +57,32 @@ public class TestAction implements IActionExecutor
 		String featuresTestDir = testDir.getParent() + File.separator + testDir.getName() + "_" + approach + "_features";
 		String featuresTestFilePath = featuresTestDir + File.separator + "features.obj";
 		
-		if (rebuildDataSet || !new File(featuresTestFilePath).exists())
+		
+		if (rebuildDataSet || !new File(featuresTestFilePath).exists()) 
 		{
-			TokenizedFileHashtable testFiles = TMLExtractor.getAnnotationsFromDir(testDir);
-			String featuresDir = testDir.getParent() + File.separator + testDir.getName() + "_" + approach + "_features" + File.separator;
-			FileHelper.saveFilesAsBinary(testFiles, featuresDir);
-		}
+			List<File> filesFromDir  = FileConverter.getTimeMLFilesFromDir(testDir, approach);
+			filesFromDir.parallelStream().forEach(f -> //);for(File f : filesFromDir)
+			{
+				Logger.Write(f.getName());
+				TokenizedFile file = TMLExtractor.getAnnotationsFromTML(f.getAbsolutePath(), Configuration.getLanguage());
+
+				NLPProcessor processor = new NLPProcessor(file);	
+				ActionSemanticParserSenna sennaSRL = new ActionSemanticParserSenna();
+				sennaSRL.execute(file);
+				processor.setSemanticFeatures();
+				try {
+					processor.setFeatures();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				files.put(f.getName(), file);
+			});
+			FileHelper.saveFilesAsBinary(files, featuresTestDir);
+		}else
+			files = FileHelper.getBinaryFiles(featuresTestFilePath);
+		
+	
 		
 		TestBase testModel = null;
 

@@ -117,9 +117,9 @@ public void execute(){
 		for(String fileName : featuresTestFiles.keySet())
 		{	
 			TokenizedFile kFileTemp = featuresTestKeyFiles.get(fileName);
-			TimeMLFile kTmlFile = new TimeMLFile(kFileTemp);
+			TimeMLFile kTmlFile = (TimeMLFile)(kFileTemp);
 			TokenizedFile fTemp = annotatedTestFiles.get(fileName);
-			TimeMLFile f = new TimeMLFile(fTemp);
+			TimeMLFile f = (TimeMLFile)(fTemp);
 
 			cleanAnnotations(f);
 			test(f);

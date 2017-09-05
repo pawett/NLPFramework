@@ -35,6 +35,7 @@ public class ActionNEDDbPedia implements  INLPActionFile {
 	@Override
 	public TokenizedFile execute(TokenizedFile tokFile) throws Exception 
 	{
+		Logger.WriteDebug("Executing DBPEDIA");
 		for(TokenizedSentence sentence : tokFile)
 		{
 			ClientBase base = new ClientBase();
@@ -77,31 +78,8 @@ public class ActionNEDDbPedia implements  INLPActionFile {
 					
 					NERCoreferenceHelper.addCoreference((TimeMLFile) tokFile, map);
 					sentence.addAnnotation(NER.class, w, map);
-				/*	if(tokFile.annotations.get(NERCoreference.class) != null)
-					{
-						Optional<Annotation> nerCorefOpt = tokFile.annotations.get(NERCoreference.class).stream().filter(ann -> ((NERCoreference)ann).mainCoref.element.entityName.equals(ner.entityName)).findFirst();
-						
-						if(nerCorefOpt.isPresent())
-						{
-							NERCoreference nerc = (NERCoreference)nerCorefOpt.get();
-							if(nerc.mainCoref.element.entityName.equals(ner.entityName))
-								nerc.addCoref(map);
-						}else
-						{
-							NERCoreference coref = new NERCoreference(map);
-							tokFile.addAnnotation(NERCoreference.class, coref);
-						}
-					}else
-					{
-						NERCoreference coref = new NERCoreference(map);
-						tokFile.addAnnotation(NERCoreference.class, coref);
-					}
-					/*sentence.annotations.get(NERCoreference.class)
-					NERCoreference coref = new NERCoreference(map);*/
-					
-				}
-					
-				else 
+			
+				}else 
 					Logger.Write("No word found");
 			}
 		}

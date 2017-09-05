@@ -16,7 +16,8 @@ public class StanfordCoreSingleton {
 		if(tokenizerPipeline == null)
 		{
 			Properties props = new Properties();
-			props.put("annotators", "tokenize, ssplit");
+			props.put("annotators", "tokenize, ssplit, pos, lemma");
+			props.put("ssplit.eolonly", "true");
 			props.put("threads", "4");
 		//ner
 			//quote
@@ -41,6 +42,7 @@ public class StanfordCoreSingleton {
 			Properties props = new Properties();
 			props.put("annotators", "tokenize, ssplit, pos, lemma, ner");
 			props.put("ner.useSUTime", "true");
+			props.put("ssplit.eolonly", "true");
 			props.put("sutime.markTimeRanges", "true");
 			props.put("sutime.includeRange", "true");
 			props.put("threads", "4");
@@ -59,6 +61,7 @@ public class StanfordCoreSingleton {
 			props.put("annotators", "tokenize,ssplit,pos,lemma,ner,parse, mention,coref");//,ner,parse,mention,coref");
 			//props.put("openie.resolve_coref", "true");
 			props.put("coref.algorithm", "neural");
+			props.put("ssplit.eolonly", "true");
 			//props.put("coref.maxMentionDistance", "25");
 			//props.put("coref.neural.greedyness", "0.45");
 			props.put("coref.maxMentionDistanceWithStringMatch", "100");
@@ -84,6 +87,7 @@ public class StanfordCoreSingleton {
 			//props.put("openie.resolve_coref", "true");
 			//props.put("coref.algorithm", "statistical");
 			//props.put("openie.triple.strict" ,"true");
+			props.put("ssplit.eolonly", "true");
 			props.put("ner.useSUTime", "true");
 			props.put("sutime.markTimeRanges", "true");
 			props.put("sutime.includeRange", "true");

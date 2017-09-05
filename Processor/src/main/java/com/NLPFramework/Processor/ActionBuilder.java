@@ -88,7 +88,7 @@ public class ActionBuilder
 			
 			case SRL:
 				NLPProcessor processor = new NLPProcessor(FileHelper.getFilesFromPath(files).get(0).getAbsolutePath(), null);
-				TokenizedFile file = processor.getFeatures();
+				TokenizedFile file = processor.setFeatures();
 				TokenFileFormatter formatter = new TokenFileFormatter(file);
 				Logger.Write(formatter.toString(new FeaturesFormatter()));
 				break;
@@ -101,6 +101,7 @@ public class ActionBuilder
 				actionExecutor = new TrainAction(task, element, train_dir, approach, Configuration.getLanguage(), rebuild_dataset, Configuration.getMachineLearningMethod());
 				actionExecutor.execute();
 				actionExecutor = new TestAction(task, element, test_dir, approach, Configuration.getLanguage(), rebuild_dataset, Configuration.getMachineLearningMethod());
+				actionExecutor.execute();
 				break;
 			case GETDATA:
 				actionExecutor = new GetData(Configuration.getFolderPath());

@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.joda.time.DateTime;
 
+import com.NLPFramework.Domain.Annotation;
 import com.NLPFramework.Domain.Language;
 import com.NLPFramework.Domain.TokenizedFile;
 import com.NLPFramework.Domain.TokenizedSentence;
@@ -31,7 +32,10 @@ public class TimeMLFile extends TokenizedFile {
 		super(file.getLanguage(), file.getName());
 		for (TokenizedSentence sentence : file)
 			this.add(sentence);
-		this.annotations = file.annotations;
+		for(Class<? extends Annotation> key : file.getAnnotationsTypes())
+			for(Annotation annotation : file.getAnnotations(key))
+				addAnnotation(key, annotation);
+		
 	}
 
 	public TimeMLFile(Language language, String name) {
@@ -67,9 +71,9 @@ public class TimeMLFile extends TokenizedFile {
 
 	public LinkedList<SubordinationLink> getSubordinationLinks() {
 		LinkedList<SubordinationLink> returnValue = new LinkedList<>();
-		if (annotations.get(SubordinationLink.class) == null)
+		if (getAnnotations(SubordinationLink.class).isEmpty())
 			return returnValue;
-		for (Object annotation : annotations.get(SubordinationLink.class)) {
+		for (Object annotation : getAnnotations(SubordinationLink.class)) {
 			// for(Object tLink : ((LinkedList<Object>)(annotation)))
 			// {
 			returnValue.push((SubordinationLink) annotation);
@@ -84,9 +88,9 @@ public class TimeMLFile extends TokenizedFile {
 	 */
 	public LinkedList<AspectualLink> getAspectualLink() {
 		LinkedList<AspectualLink> returnValue = new LinkedList<>();
-		if (annotations.get(AspectualLink.class) == null)
+		if (getAnnotations(AspectualLink.class) == null)
 			return returnValue;
-		for (Object annotation : annotations.get(AspectualLink.class)) {
+		for (Object annotation : getAnnotations(AspectualLink.class)) {
 			// for(Object tLink : ((LinkedList<Object>)(annotation)))
 			// {
 			returnValue.push((AspectualLink) annotation);
@@ -100,9 +104,9 @@ public class TimeMLFile extends TokenizedFile {
 
 	public LinkedList<TimeLink> getTimeLinks() {
 		LinkedList<TimeLink> returnValue = new LinkedList<>();
-		if (annotations.get(TimeLink.class) == null)
+		if (getAnnotations(TimeLink.class) == null)
 			return returnValue;
-		for (Object tLinks : annotations.get(TimeLink.class)) {
+		for (Object tLinks : getAnnotations(TimeLink.class)) {
 			/*
 			 * for(Object tLink : ((LinkedList<Object>)(tLinks))) {
 			 */
@@ -114,9 +118,9 @@ public class TimeMLFile extends TokenizedFile {
 
 	public LinkedList<MakeInstance> getMakeInstances() {
 		LinkedList<MakeInstance> returnValue = new LinkedList<>();
-		if (annotations.get(MakeInstance.class) == null)
+		if (getAnnotations(MakeInstance.class) == null)
 			return returnValue;
-		for (Object annotation : annotations.get(MakeInstance.class)) {
+		for (Object annotation : getAnnotations(MakeInstance.class)) {
 			/*
 			 * for(Object tLink : ((LinkedList<Object>)(annotation))) {
 			 */

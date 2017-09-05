@@ -36,10 +36,11 @@ public class ActionCoreferenceCoreNLP extends ActionTokenizerBase {
 	@Override
 	public TokenizedFile execute(TokenizedFile tokFile) throws Exception
 	{
+		Logger.WriteDebug("Setting COREFERENCES");
 		StanfordCoreNLP pipeline = StanfordCoreSingleton.getCoreferencePipeLine();		
 		
 		Annotation doc = new Annotation( tokFile.getOriginalText());
-				
+			
 		pipeline.annotate(doc);
 		
 		Map<Integer,CorefChain> coreferences = doc.get(CorefChainAnnotation.class);
@@ -60,7 +61,6 @@ public class ActionCoreferenceCoreNLP extends ActionTokenizerBase {
 				tokFile.addAnnotation(Coreference.class, mainCoreference);
 		}
 		
-		
 	/*	for(CoreMap sentence : doc.get(CoreAnnotations.SentencesAnnotation.class) )
 		{
 			Collection<RelationTriple> triples = sentence.get(NaturalLogicAnnotations.RelationTriplesAnnotation.class);
@@ -73,7 +73,7 @@ public class ActionCoreferenceCoreNLP extends ActionTokenizerBase {
 			}
 		}*/
 		
-		for(CoreMap s : doc.get(SentencesAnnotation.class))
+		/*for(CoreMap s : doc.get(SentencesAnnotation.class))
 		{		
 			List<Mention> mentions = s.get(CorefMentionsAnnotation.class);
 			for(Mention m : mentions)
@@ -89,43 +89,49 @@ public class ActionCoreferenceCoreNLP extends ActionTokenizerBase {
 					CoreLabel iw = m.dependingVerb.backingLabel();
 					int depVerbPosition = iw.get(IndexAnnotation.class)-1;
 					
-					
-					Entity e = new Entity();
-					e.word = sentence.get(m.startIndex);
-					e.offset = m.endIndex - m.startIndex;
-					
-					Word mainWord = sentence.get(m.startIndex);
-					
-					Word depVerb = sentence.get(depVerbPosition);//.getWordDependantVerb(e.word);
-					depVerb.isVerb = true;
-					sentence.verbs.add(depVerb);
-					if(m.isSubject)
+					try 
 					{
-						
-						Word next = mainWord;
-						while(next.sentencePosition < m.endIndex)
+						Entity e = new Entity();
+						e.word = sentence.get(m.startIndex);
+						e.offset = m.endIndex - m.startIndex;
+
+						Word mainWord = sentence.get(m.startIndex);
+
+						Word depVerb = sentence.get(depVerbPosition);//.getWordDependantVerb(e.word);
+						depVerb.isVerb = true;
+						sentence.verbs.add(depVerb);
+						if(m.isSubject)
 						{
-							sentence.addSemanticRole(PropBankArgument.A0, depVerb, next);
-							next = next.next;
+
+							Word next = mainWord;
+							while(next != null && next.sentencePosition < m.endIndex)
+							{
+								sentence.addSemanticRole(PropBankArgument.A0, depVerb, next);
+								next = next.next;
+							}
+
 						}
-						
+
+						if(m.isDirectObject)
+						{
+
+							Word next = mainWord;
+							while(next != null && next.sentencePosition <= m.endIndex)
+							{
+								sentence.addSemanticRole(PropBankArgument.A1, depVerb, next);
+								next = next.next;
+							}
+
+						}
+						EntityMapper<com.NLPFramework.Domain.Annotation> map = sentence.annotations.get(JournalistInfo.class) != null ? sentence.annotations.get(JournalistInfo.class).get(depVerb) : null;
+						if(map == null)
+							map = new EntityMapper<>();
+						JournalistInfo ji = map.element != null ? (JournalistInfo) map.element : new JournalistInfo();
+					}catch(Exception ex)
+					{
+						Logger.WriteError("Error setting coreference", ex);
 					}
 					
-					if(m.isDirectObject)
-					{
-						
-						Word next = mainWord;
-						while(next != null && next.sentencePosition <= m.endIndex)
-						{
-							sentence.addSemanticRole(PropBankArgument.A1, depVerb, next);
-							next = next.next;
-						}
-						
-					}
-					EntityMapper<com.NLPFramework.Domain.Annotation> map = sentence.annotations.get(JournalistInfo.class) != null ? sentence.annotations.get(JournalistInfo.class).get(depVerb) : null;
-					if(map == null)
-						 map = new EntityMapper<>();
-					JournalistInfo ji = map.element != null ? (JournalistInfo) map.element : new JournalistInfo();
 				/*	
 					if(m.isDirectObject)
 					{
@@ -145,17 +151,20 @@ public class ActionCoreferenceCoreNLP extends ActionTokenizerBase {
 					map.element = ji;
 					if(sentence.annotations.get(JournalistInfo.class) == null || sentence.annotations.get(JournalistInfo.class).get(depVerb) == null)
 						sentence.addAnnotation(JournalistInfo.class, ji.what.word, map);
-						*/
+						
 				}
 					
 			}
-		}
+		}*/
 
 		return tokFile;
 	}
 
 	private Coreference setCoreference(TokenizedFile tokFile, CorefMention corefMention) 
 	{
+		try
+		{
+			
 		TokenizedSentence sentence = tokFile.get(corefMention.sentNum - 1);
 		int corefIndex = corefMention.startIndex - 1;
 		if(corefIndex < 0)
@@ -163,6 +172,11 @@ public class ActionCoreferenceCoreNLP extends ActionTokenizerBase {
 		Word word = sentence.get(corefIndex);
 		int offset = corefMention.endIndex - corefMention.startIndex;
 		return new Coreference(word, offset);
+		}catch (Exception ex){
+			Logger.WriteError("Error setting the coreference", ex);
+		}
+		
+		return null;
 		
 	}
 

@@ -2,6 +2,7 @@ package com.NLPFramework.TimeML.Test;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Optional;
 
@@ -163,7 +164,7 @@ public class Scorer {
 	
 	public void scoreTimeLinkClassification(Score score, TimeMLFile annotatedFile, TimeMLFile keyFile)
 	{
-		LinkedList<Annotation> timeLinks = keyFile.annotations.get(TimeLink.class);
+		LinkedList<Annotation> timeLinks = keyFile.getAnnotations(TimeLink.class);
 		if(timeLinks == null)
 			return;
 		for(Annotation tlObject : timeLinks)
@@ -232,7 +233,7 @@ public class Scorer {
 	
 	public void scoreTimeLinkDCTClassification(Score score, TimeMLFile annotatedFile, TimeMLFile keyFile)
 	{
-		LinkedList<Annotation> timeLinks = keyFile.annotations.get(TimeLink.class);
+		LinkedList<Annotation> timeLinks = keyFile.getAnnotations(TimeLink.class);
 		if(timeLinks == null)
 			return;
 		for(Annotation tlObject : timeLinks)
@@ -278,7 +279,7 @@ public class Scorer {
 	
 	public void scoreTimeLinkEventEventClassification(Score score, TimeMLFile annotatedFile, TimeMLFile keyFile)
 	{
-		LinkedList<Annotation> timeLinks = keyFile.annotations.get(TimeLink.class);
+		LinkedList<Annotation> timeLinks = keyFile.getAnnotations(TimeLink.class);
 		if(timeLinks == null)
 			return;
 		for(Annotation tlObject : timeLinks)
@@ -313,7 +314,7 @@ public class Scorer {
 	
 	public void scoreTimeLinkEventSubEventClassification(Score score, TimeMLFile annotatedFile, TimeMLFile keyFile)
 	{
-		LinkedList<Annotation> timeLinks = keyFile.annotations.get(TimeLink.class);
+		LinkedList<Annotation> timeLinks = keyFile.getAnnotations(TimeLink.class);
 		if(timeLinks == null)
 			return;
 		for(Annotation tlObject : timeLinks)
@@ -544,28 +545,28 @@ public class Scorer {
     			judgement = null;
     		}
     		
-    		if(keySentence.annotations.get(Timex3.class)!= null && keySentence.annotations.get(Timex3.class).get(keyWord) != null)
+    		if(TimeMLHelper.getTimexFromSentence(keyWord, keySentence) != null)
     		{
     			if(filter == null || keyWord.pos.matches(filter))
     			{
     				if(keyMap != null)
     					throw new Exception("Overlapped key timex");
 
-    				keyMap = keySentence.annotations.get(Timex3.class).get(keyWord);
+    				keyMap = TimeMLHelper.getTimexFromSentence(keyWord, keySentence);
     				if(judgement == null)
     					judgement = getJudgement("timex", JudgementType.inco, keySentence, keyWord, annotatedSentence, annotatedWord);
     			}
     		}
     		
     		
-    		if(keySentence.annotations.get(Timex3.class) != null && annotatedSentence.annotations.get(Timex3.class).get(annotatedWord) != null)
+    		if(TimeMLHelper.getTimexFromSentence(keyWord, keySentence) != null && TimeMLHelper.getTimexFromSentence(annotatedWord, annotatedSentence) != null)
     		{
     			if(filter == null || keyWord.pos.matches(filter))
     			{
     				if(annotatedMap != null)
     					throw new Exception("Overlapped annotated timex");
 
-    				annotatedMap = annotatedSentence.annotations.get(Timex3.class).get(annotatedWord);
+    				annotatedMap = TimeMLHelper.getTimexFromSentence(annotatedWord, annotatedSentence);
 
     				if(judgement == null)
     					judgement = getJudgement("timex", JudgementType.inco, keySentence, keyWord, annotatedSentence, annotatedWord);
@@ -599,26 +600,29 @@ public class Scorer {
     	EntityMapper<Annotation> annotatedMap = null;
     	EntityMapper<Annotation> keyMap = null;
     	Judgement judgement = null;
-    	
-    	if(annotatedSentence.annotations.get(Timex3.class) != null)
+    	 ArrayList<Annotation> annotatedSentenceTimexes = TimeMLHelper.getSentenceTimexes(annotatedSentence); 
+    	if(annotatedSentenceTimexes != null && !annotatedSentenceTimexes.isEmpty())
     	{
-    	
-	    	for(Word keyWord : keySentence.annotations.get(Timex3.class).keySet())
+    		 ArrayList<Annotation> keySentenceTimexes =  TimeMLHelper.getSentenceTimexes(keySentence);
+	    	for(Annotation annotatedAnnotation : annotatedSentenceTimexes)
 	    	{
-	    		Word annotatedWord = annotatedSentence.get(keyWord.sentencePosition);
-	    		if(annotatedSentence.annotations.get(Timex3.class) == null)
+	    		Timex3 annotatedTimex = (Timex3) annotatedAnnotation;
+	    		Word annotatedWord = annotatedTimex.word;
+	    		Word keyWord = keySentence.get(annotatedTimex.word.sentencePosition);
+	    		Timex3 keyTimex = null;
+	    		if( TimeMLHelper.getTimexFromSentence(keyWord, keySentence) != null)
+	    				keyTimex =(Timex3) TimeMLHelper.getTimexFromSentence(keyWord, keySentence).element;
+	    		//Word annotatedWord = annotatedSentence.get(keyWord.sentencePosition);
+	    		if(keyTimex == null)
 	    		{
 	    			judgement = getJudgement("timex", JudgementType.miss, keySentence, keyWord, annotatedSentence, annotatedWord);
 	    			score.add(judgement);
 	    			continue;
 	    		}
 	    			
-	    		annotatedMap = annotatedSentence.annotations.get(Timex3.class).get(annotatedWord);
-	    		keyMap = keySentence.annotations.get(Timex3.class).get(keyWord);
-	    		Timex3 annotatedTimex = (Timex3)annotatedMap.element;
-	    		Timex3 keyEvent = (Timex3) keyMap.element;
+	    		    		
 	    		judgement = getJudgement("timex", JudgementType.inco, keySentence, keyWord, annotatedSentence, annotatedWord);
-	    		if(annotatedTimex.type.equals(keyEvent.type))
+	    		if(annotatedTimex.type.equals(keyTimex.type))
 	    			judgement.changeJudgement(JudgementType.corr);
 	    		
 	    		score.add(judgement);

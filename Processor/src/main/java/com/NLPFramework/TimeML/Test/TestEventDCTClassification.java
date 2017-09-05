@@ -59,9 +59,9 @@ public class TestEventDCTClassification extends TestTMLFileFormatterBase impleme
 	public void cleanAnnotations(TimeMLFile file) 
 	{
 
-		if(file.annotations.get(TimeLink.class) != null)
+		if(file.getAnnotations(TimeLink.class) != null)
 		{
-			for(Object annotation : file.annotations.get(TimeLink.class))
+			for(Object annotation : file.getAnnotations(TimeLink.class))
 			{
 				TimeLink tl = (TimeLink) annotation;
 				tl.type = null;

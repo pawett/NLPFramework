@@ -25,8 +25,9 @@ public class EventDCTRelationFormatter  implements IFileFormatter
 	public String toString(TimeMLFile file)
 	{
 		StringBuilder sb = new StringBuilder();
-		
-		for(Object tlObject : file.annotations.get(TimeLink.class))
+		if(file.getAnnotations(TimeLink.class).isEmpty())
+			return sb.toString();
+		for(Object tlObject : file.getAnnotations(TimeLink.class))
 		{
 			String annotation = annotateTimeLink(file, tlObject);
 			if(annotation != null)

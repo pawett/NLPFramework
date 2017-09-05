@@ -1,25 +1,17 @@
 package com.NLPFramework.Processor;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import com.NLPFramework.Crosscutting.Logger;
 import com.NLPFramework.Domain.EventTime;
-import com.NLPFramework.Domain.Language;
 import com.NLPFramework.Domain.TokenizedFile;
 import com.NLPFramework.Domain.TokenizedFileHashtable;
-import com.NLPFramework.Files.NLPFile;
-import com.NLPFramework.Files.PlainFile;
-import com.NLPFramework.Files.XMLFile;
-import com.NLPFramework.Formatters.FeaturesFormatter;
-import com.NLPFramework.Formatters.TokenFileFormatter;
 import com.NLPFramework.Formatters.Types.IllinoisCoref.FileReader;
 import com.NLPFramework.Helpers.FileConverter;
 import com.NLPFramework.Helpers.FileHelper;
@@ -39,13 +31,13 @@ public class GetData implements IActionExecutor {
 	{
 		dataPath = path;
 	}
-	
+	TokenizedFileHashtable files = new TokenizedFileHashtable();
 	@Override
 	public void execute() throws Exception 
 	{
 		String featuresdir = dataPath.getParent() + File.separator + dataPath.getName() + "_" + "SemEval4" + "_features";
 		String featuresTrainFilePath = featuresdir + File.separator + "features.obj";
-		TokenizedFileHashtable files = new TokenizedFileHashtable();
+		
 		// Check for features files (train/test)
 		if (!new File(featuresTrainFilePath).exists()) 
 		{
@@ -66,25 +58,48 @@ public class GetData implements IActionExecutor {
 				hashtableFiles.put(f.getName(), tokFile);
 			}*/
 			
+		/*/	filesFromDir.parallelStream().forEach((f) -> 
+			{
+				
+				
+								
+				
+			});*/
+			
 			for(File f : filesFromDir)
 			{
+				Logger.Write(f.getName());
 				TokenizedFile file = TMLExtractor.getAnnotationsFromTML(f.getAbsolutePath(), Configuration.getLanguage());
-				
-				NLPProcessor processor = new NLPProcessor(file);
-				
+
+				NLPProcessor processor = new NLPProcessor(file);	
+				ActionSemanticParserSenna sennaSRL = new ActionSemanticParserSenna();
+				sennaSRL.execute(file);
+				processor.setSemanticFeatures();
+				try {
+					processor.setFeatures();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				processor.classifyEvents();
 				processor.setMakeInstancesFromEvents();
 				processor.processTimex();
 				processor.setIds();
 				processor.RecognizeTLINKS();
 				processor.executeCoreference();
-				
+
 				ActionNERCoreNLP coreNLPNer = new ActionNERCoreNLP();
 				coreNLPNer.execute(file);
-				
+
 				ActionNEDDbPedia ned = new ActionNEDDbPedia();
-				ned.execute(file);
-				
+				try {
+					ned.execute(file);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+
 				files.put(f.getName(), file);
 				
 			}
@@ -126,6 +141,9 @@ public class GetData implements IActionExecutor {
 			TimeMLFile timeMlFile = (TimeMLFile)file;
 			String jsonPath = dataPath + File.separator + file.getName() + ".json";
 			FileReader fr = new FileReader();
+			
+		
+			
 			//IllinoisCoreference coref =  fr.readFile(jsonPath);
 			//TODO:Move NER to processor
 			
@@ -148,11 +166,20 @@ public class GetData implements IActionExecutor {
 		ArrayList<String> eventsOrdered = new ArrayList<>(entityMap.keySet());
 		Collections.sort(eventsOrdered);
 		
+		//File dirTimeFile = new File();
 		for(String entity : eventsOrdered)
 		{
-			Logger.Write("Events for " + entity.toString() + " num: "+ entityMap.get(entity).getTotalEvents());
-			Logger.Write("EventTimes: " + entityMap.get(entity).getEventTimesOrderedByTime());
+			StringBuilder sb = new StringBuilder();
+			sb.append(entity.toString());
+			sb.append(System.lineSeparator());
+			sb.append(entityMap.get(entity).getEventTimesOrderedByTime());
+			FileHelper.createFileFromText(sb.toString(), dataPath + File.separator +  "TimeLines" + File.separator + entity.toLowerCase() + ".txt");
 			
+			Logger.Write("Events for " + entity.toString() + " num: "+ entityMap.get(entity).getTotalEvents());
+			Logger.Write("EventTimes: ");
+			Logger.Write(entityMap.get(entity).getEventTimesOrderedByTime());
+			
+			int i = 0;
 		}
 		
 		/*ArrayList<NER> entities = tl.getEntities();

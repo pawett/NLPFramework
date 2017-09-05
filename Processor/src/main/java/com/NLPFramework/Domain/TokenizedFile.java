@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Optional;
+import java.util.Set;
 
 
 
@@ -16,12 +17,22 @@ public class TokenizedFile extends LinkedList<TokenizedSentence>
 	private Language language = Language.EN;
 	private String name = null;
 	private String originalText = null;
-	public Hashtable<Class<? extends Annotation>,LinkedList<Annotation>> annotations = new Hashtable<>();
+	protected Hashtable<Class<? extends Annotation>,LinkedList<Annotation>> annotations = new Hashtable<>();
 	
 	public TokenizedFile(Language language, String name)
 	{
 		this.language = language;
 		this.name = name;
+	}
+	
+	public Set<Class<? extends Annotation>> getAnnotationsTypes()
+	{
+		return annotations.keySet();
+	}
+	
+	protected Hashtable<Class<? extends Annotation>,LinkedList<Annotation>> getAnnotations()
+	{
+		return annotations;
 	}
 	
 	public TokenizedFile(Language language, String name, String originalText)
@@ -79,6 +90,16 @@ public class TokenizedFile extends LinkedList<TokenizedSentence>
 			annotations.put(class1, new LinkedList<>());
 	
 		annotations.get(class1).push(annotation);
+	}
+	
+	public LinkedList<Annotation> getAnnotations(Class<? extends Annotation> class1)
+	{
+		LinkedList<Annotation> annotationsList = new LinkedList<>();
+		
+		if(annotations.get(class1) != null)
+			annotationsList = annotations.get(class1);
+		
+		return annotationsList;
 	}
 	
 	public <T extends Annotation> T getAnnotation(Class<? extends Annotation> class1, Annotation annotation)

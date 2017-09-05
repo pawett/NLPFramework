@@ -9,11 +9,9 @@ import java.util.stream.Collectors;
 
 import com.NLPFramework.Crosscutting.Logger;
 import com.NLPFramework.Domain.Annotation;
-import com.NLPFramework.Domain.Coreference;
 import com.NLPFramework.Domain.EntityType;
 import com.NLPFramework.Domain.JournalistInfo;
 import com.NLPFramework.Domain.NER;
-import com.NLPFramework.Domain.NERCoreference;
 import com.NLPFramework.Domain.PropBankArgument;
 import com.NLPFramework.Domain.TokenizedSentence;
 import com.NLPFramework.Domain.Word;
@@ -30,6 +28,8 @@ import com.NLPFramework.TimeML.Domain.TimeMLFile;
 import com.NLPFramework.TimeML.Domain.TimeType;
 import com.NLPFramework.TimeML.Domain.Timex3;
 
+import edu.stanford.nlp.ie.util.RelationTriple;
+import edu.stanford.nlp.simple.*;
 
 
 public class TimeLineProcessor 
@@ -49,6 +49,21 @@ public class TimeLineProcessor
 		//Of course, those that are counter-factual(did not happen, aka negative sentences - He did not work...
 		for(TokenizedSentence sentence : file)
 		{
+			
+			/* Document doc = new Document(sentence.originalText);
+System.out.println(sentence.originalText);
+			    // Iterate over the sentences in the document
+			    for (Sentence sent : doc.sentences()) {
+			      // Iterate over the triples in the sentence
+			      for (RelationTriple triple : sent.openieTriples()) {
+			        // Print the triple
+			        System.out.println(triple.confidence + "\t" +
+			            triple.subjectLemmaGloss() + "\t" +
+			            triple.relationLemmaGloss() + "\t" +
+			            triple.objectLemmaGloss());
+			      }
+			    }
+			  */
 			
 			Hashtable<Word, EntityMapper<Annotation>> events =  sentence.annotations.get(Event.class);
 			
@@ -82,7 +97,20 @@ public class TimeLineProcessor
 		String subject = "";
 		String cd= "";
 		String when = "";
-		
+		//Word eventDepVerb = null;
+		/*if(event.word.isVerb)
+			eventDepVerb = event.word;
+		else
+		{
+			for(Word verb : sentence.getSemanticRoles().keySet())
+			{
+				if(sentence.getSemanticRoleForEvent(verb, PropBankArgument.A0) != null && sentence.getSemanticRoleForEvent(verb, PropBankArgument.A0).words.contains(event.word))
+					eventDepVerb = verb;
+				else if(sentence.getSemanticRoleForEvent(verb, PropBankArgument.A1) != null && sentence.getSemanticRoleForEvent(verb, PropBankArgument.A1).words.contains(event.word))
+					eventDepVerb = verb;
+
+			}
+		}*/
 		Word eventDepVerb = event.word.isVerb ? event.word : sentence.getWordDependantVerb(event.word);
 		if(eventDepVerb == null)
 			return;
@@ -119,13 +147,16 @@ public class TimeLineProcessor
 				//TODO:I don't agree, but it seems to be fine to add the entity owner
 				//if(w.pos.equals("POS"))
 				//	A0.remove(w.prev);
+				
+				if(w.pos.equals(","))
+					A0.add(w);
 				if(i >= 0 && (w.synt.startsWith("SBAR") || w.pos.startsWith("WDT") || w.pos.equals("WP") || w.pos.startsWith("VB") || w.pos.startsWith("RB")))
 					break;
 				
 			
 			}else
 				A0.add(w);
-			i++;
+			i--;
 		}
 		
 		i = 0;
@@ -141,6 +172,8 @@ public class TimeLineProcessor
 				//if(w.pos.equals("POS"))
 				//	A1.remove(w.prev);
 					
+				if(w.pos.equals(","))
+					A1.add(w);
 				if(i >= 0 && (w.synt.contains("SBAR") || w.pos.startsWith("WDT") || w.pos.equals("WP") || w.pos.startsWith("VB")))
 					break;
 				
@@ -168,13 +201,18 @@ public class TimeLineProcessor
 		//info
 		
 		//annotateNERs(sentence, A0);
-		LinkedList<NER> allA0NERs = new LinkedList<>();
+		LinkedList<LinkedList<NER>> allA0NERs = new LinkedList<>();
 		for(Word w : A0)
 		{
-			int t= 0;
+			if(w.pos.matches("CC")|| w.pos.matches(","))
+				allA0NERs.add(new LinkedList<>());
 			NER ner = NERCoreferenceHelper.getMainNERFromWord(file, w);
 			if(ner != null)
-				allA0NERs.add(ner);
+			{
+				if(allA0NERs.isEmpty())
+					allA0NERs.add(new LinkedList<>());
+				allA0NERs.getLast().add(ner);
+			}
 				
 			/*TokenizedSentence currentWordSentence = TimeMLHelper.getWordSentence(file, w);
 			if(currentWordSentence.annotations.get(NER.class) != null && currentWordSentence.annotations.get(NER.class).get(w) != null)
@@ -191,18 +229,24 @@ public class TimeLineProcessor
 				Logger.Write("Not NER for " + w + " in " + A0.toString());*/
 
 		}
-		if(!allA0NERs.isEmpty())
-			info.actors.add(allA0NERs.getLast());
+		//if(!allA0NERs.isEmpty())
+		//	info.actors.add(allA0NERs.getLast());
 		//Logger.Write("A0::" + A0);
 		
 		
 	
-		LinkedList<NER> allA1NERs = new LinkedList<>();
+		LinkedList<LinkedList<NER>> allA1NERs = new LinkedList<>();
 		for(Word w : A1)
 		{
+			if(w.pos.matches("CC") || w.pos.matches(","))
+				allA1NERs.add(new LinkedList<>());
 			NER ner = NERCoreferenceHelper.getMainNERFromWord(file, w);
-			if(ner != null && !info.patients.contains(ner))
-				allA1NERs.add(ner);
+			if(ner != null)
+			{
+				if(allA1NERs.isEmpty())
+					allA1NERs.add(new LinkedList<>());
+				allA1NERs.getLast().add(ner);
+			}
 			/*TokenizedSentence currentWordSentence = TimeMLHelper.getWordSentence(file, w);
 			if(currentWordSentence.annotations.get(NER.class) != null && currentWordSentence.annotations.get(NER.class).get(w) != null)
 			{
@@ -219,8 +263,8 @@ public class TimeLineProcessor
 
 		}
 		
-		if(!allA1NERs.isEmpty())
-			info.patients.add(allA1NERs.getLast());
+		//if(!allA1NERs.isEmpty())
+		//	info.patients.add(allA1NERs.getLast());
 		
 		/*if(sentence.annotations.get(NER.class) != null && sentence.annotations.get(NER.class).keySet() != null){
 			Logger.Write("NER for sentence " + sentence.originalText);
@@ -240,7 +284,8 @@ public class TimeLineProcessor
 		MakeInstance eventMakeInstance = TimeMLHelper.getMakeInstanceFromFile(file, event.word);
 		
 		Timex3 relatedTimex = processEventRelatedTimexes(sentence, eventDepVerb, timexes, relatedTimexAnnotation, eventMakeInstance);
-		int y = 2;
+		Timex3 t0RelatedTimex = getT0RelatedTimex(eventMakeInstance);
+		int y = 5;
 		Timex3 timexByEvent = processRelatedEventMakeInstancesTimeLinks(eventMakeInstance);
 		
 		ArrayList<TimeLink> t0TimeLinks = TimeMLHelper.getAllT0RelatedTimeLinks(file);
@@ -250,11 +295,38 @@ public class TimeLineProcessor
 			Logger.WriteDebug("We have two winners!! :: " + relatedTimex.value + " : " + timexByEvent.value);
 		}
 		
-		info.when = relatedTimex != null ? relatedTimex : timexByEvent;
+		info.when = relatedTimex != null ? relatedTimex : timexByEvent != null ? timexByEvent : t0RelatedTimex;
 		
 		
 		
 			Logger.Write("Sentence: " + sentence.originalText);
+			for(LinkedList<NER> ners : allA0NERs)
+			{
+				if(ners.isEmpty())
+					continue;
+				NER firstNER = ners.getFirst();
+				if(ners.stream().allMatch(n -> n.type != null && firstNER.type != null && n.type.equals(firstNER.type)))
+					info.actors.add(ners.getLast());
+				else if(ners.stream().anyMatch(n -> n.type != null && n.type.equals(EntityType.PERSON)))
+					info.actors.add(ners.stream().filter(n -> n.type != null && n.type.equals(EntityType.PERSON)).findFirst().get());
+				else
+					info.actors.addAll(ners);
+					
+			}
+			
+			for(LinkedList<NER> ners : allA1NERs)
+			{
+				int p = 6;
+				if(ners.isEmpty())
+					continue;
+				NER firstNER = ners.getFirst();
+				if(ners.stream().allMatch(n -> n.type != null && firstNER.type != null && n.type.equals(firstNER.type)))
+					info.patients.add(ners.getLast());
+				else if(ners.stream().anyMatch(n -> n.type != null && n.type.equals(EntityType.PERSON)))
+					info.patients.add(ners.stream().filter(n -> n.type != null && n.type.equals(EntityType.PERSON)).findFirst().get());
+				else
+					info.patients.addAll(ners);
+			}
 			Logger.Write("What: " + event.stem);
 			for(NER n : info.actors)
 			{
@@ -291,9 +363,12 @@ public class TimeLineProcessor
 					
 					for(TimeLink relatedMakeInstanceOverlapTimeLink : relatedMakeInstanceOverlapTimeLinks)
 					{
-						if(relatedMakeInstanceOverlapTimeLink.type.toString().matches("DATE|TIME"))
+						if(relatedMakeInstanceOverlapTimeLink.relatedToTime.type.toString().matches("DATE|TIME"))
 						{
+							if(!relatedMakeInstanceOverlapTimeLink.relatedToTime.value.equals("PAST_REF") && !relatedMakeInstanceOverlapTimeLink.relatedToTime.value.equals("FUTURE_REF"))
+							{
 							return relatedMakeInstanceOverlapTimeLink.relatedToTime;
+							}
 						}
 						Logger.Write(relatedMakeInstanceOverlapTimeLink.relatedToTime.value);
 					}
@@ -307,6 +382,24 @@ public class TimeLineProcessor
 
 	private boolean timeLinkIsOfTypeOverlap(TimeLink relatedTimeLink) {
 		return TimeMLHelper.getTimeLinkRelationTypeSimplified(relatedTimeLink.type, false).equals(TimeLinkRelationType.OVERLAP);
+	}
+	
+	private Timex3 getT0RelatedTimex(MakeInstance eventMakeInstance)
+	{
+		//Not related times in sentence, chek the relation to t0
+		
+				ArrayList<TimeLink> timeLinksT0 = TimeMLHelper.getTimeLinksForMakeInstance(file, eventMakeInstance);
+				if(timeLinksT0 != null && !timeLinksT0.isEmpty())
+				{
+					List<TimeLink> tlt0List = timeLinksT0.stream().filter(tlt0 -> tlt0.relatedToTime != null && tlt0.relatedToTime.id.equals("0")).collect(Collectors.toList());
+					
+					if(tlt0List != null && !tlt0List.isEmpty() && timeLinkIsOfTypeOverlap(tlt0List.get(0)))
+						return tlt0List.get(0).relatedToTime;
+
+					
+				}
+				return null;
+				
 	}
 
 	private Timex3 processEventRelatedTimexes(TokenizedSentence sentence, Word eventDepVerb, 
@@ -341,18 +434,6 @@ public class TimeLineProcessor
 			}
 		}
 		
-		//Not related times in sentence, chek the relation to t0
-		
-		ArrayList<TimeLink> timeLinksT0 = TimeMLHelper.getTimeLinksForMakeInstance(file, eventMakeInstance);
-		if(timeLinksT0 != null && !timeLinksT0.isEmpty())
-		{
-			List<TimeLink> tlt0List = timeLinksT0.stream().filter(tlt0 -> tlt0.relatedToTime != null && tlt0.relatedToTime.id.equals("0")).collect(Collectors.toList());
-			
-			if(tlt0List != null && !tlt0List.isEmpty() && timeLinkIsOfTypeOverlap(tlt0List.get(0)))
-				return tlt0List.get(0).relatedToTime;
-
-			
-		}
 		
 		return null;
 	}
